@@ -16,9 +16,12 @@ from GSTAL_Virtual_Machine import GSTALVM
 import os
 import subprocess
 
+from terminal import Terminal
+
 
 def open_file(event=None):
     global file_path
+    global file_name
     path = askopenfilename()
     file_path = path
     with open(path, "r") as file:
@@ -26,6 +29,9 @@ def open_file(event=None):
         vm.load(os.path.basename(file_path))
         editor.delete(1.0, END)
         editor.insert(1.0, code)
+    
+    file_name = os.path.basename(file_path) 
+    vm.terminal.clear()
 
 
 def new_file(event=None):
@@ -38,6 +44,7 @@ def new_file(event=None):
 
 def save_file(event=None):
     global file_path
+    global file_name
     if file_path == '':
         save_path = asksaveasfilename()
         file_path = save_path
@@ -45,10 +52,10 @@ def save_file(event=None):
         save_path = file_path
     with open(save_path, "w") as file:
         code = editor.get(1.0, END)
-        print("basename", os.path.basename(file_path))
         file.write(code)
 
-    vm.load(os.path.basename(file_path))
+    file_name = os.path.basename(file_path) 
+    vm.load(file_name) # will need to change this to let the debugger work with files not in the same directory 
 
 def save_as(event=None):
     global file_path
@@ -65,6 +72,9 @@ def close(event=None):
 
 
 def run(event=None):
+    global file_name
+    vm.terminal.write(f"\nRunning {file_name}")
+    vm.terminal.write("\n---------\n")
     vm.reset()
     vm.run()
 
@@ -73,14 +83,26 @@ def stop(event=None):
 
 
 def step_run(event=None):
-    pass
+    if vm.finished_execution(): 
+        vm.reset()
+        vm.terminal.write("\n")
+    # editor.tag_add("step", float(vm._pc), f"{float(vm._pc)} lineend")
+    vm.execute()
 
 def run_end(event=None):
-    pass
+    vm.run()
 
 def exit(event=None):
     pass
 
+
+def enter_pressed(event):
+    vm.terminal.entered.set(vm.terminal.entered.get())
+
+def on_exit():
+    vm.entered.set(vm.entered.get())
+    root.destroy()
+    exit()
 
 
 
@@ -91,6 +113,7 @@ root.title = "GSTAL Debugger"
 
 menu = Menu(root)
 root.config(menu=menu)
+root.focus()
 
 root.bind("<Control-o>", open_file)
 root.bind("<Control-n>", new_file)
@@ -103,9 +126,11 @@ root.grid_rowconfigure(0, weight=2)
 
 editor = ScrolledText(root, font=("haveltica 9 bold"),  wrap="none", width=45, height=45)
 editor.grid(column=0, row=0)
+editor.tag_configure("step", background="red")
 
 output = ScrolledText(root, font=("haveltica 9 bold"),  wrap="none", width=45, height=45)
 output.grid(column=1, row=0)
+output.configure(state="disabled")
 
 
 output.insert(END, "Output!")
@@ -136,9 +161,11 @@ run_menu.add_separator()
 run_menu.add_command(label="Step run", command=step_run)
 run_menu.add_command(label="Run to end", command=run_end)
 
-vm = GSTALVM()
-vm.output = output
-new_file()
 
+root.bind("<Return>", enter_pressed)
+
+vm = GSTALVM()
+vm.terminal = Terminal(output)
+new_file()
 
 root.mainloop()

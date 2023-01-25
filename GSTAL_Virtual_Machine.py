@@ -14,8 +14,7 @@
 import sys
 import argparse
 from gstalmem import DataCell
-from tkinter import *
-from tkinter import ttk
+from terminal import Terminal
 
 #--------------------------GSTALVM-----------------------------------------------    
 
@@ -46,8 +45,11 @@ class GSTALVM:
     def size(self):
         return self._tos+1
     
+    def finished_execution(self):
+        return self._pc >= self._inst_count
+
     def runError(self):    
-        self.output.insert(END, "ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
+        self.print_val("ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
         parser = argparse.ArgumentParser() #read command line check for -d 
         parser.add_argument('-d', '--stackdump') #creates argument stackdump 
         stackdump=True
@@ -71,6 +73,7 @@ class GSTALVM:
         self._tos = -1
         self._pc = 0
         self._act = 0
+        self._inst_count = 0
         self._dataMem = []
         self._codeMem = []
 
@@ -112,7 +115,7 @@ class GSTALVM:
             f = open(f)
         except Exception: 
             flag=True
-            self.output.insert("Error: File name not valid")
+            self.print_val("Error: File name not valid")
     
         for line in f:
             line=line.upper()
@@ -125,7 +128,7 @@ class GSTALVM:
                 allPiece.append(tuple(instr))
                 allInstr.append(instr[0])
             else:
-                self.output.insert(END, "error")
+                self.print_val(END, "error")
 #check it
         i = 0
         while i < len(allInstr):
@@ -134,13 +137,14 @@ class GSTALVM:
                 self._codeMem = allPiece
             else:
                 flag = True
-                self.output.insert(END, f"This instruction is not in the GSTAL dictionary: {opcode}")
+                self.print_val(f"This instruction is not in the GSTAL dictionary: {opcode}")
             i = i+1    
+        self._inst_count = len(self._codeMem)
         return flag
             
             
     def execute(self):       
-        if(self._pc < 0):
+        if(self._pc < 0 or self._pc >= self._inst_count):
             return
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
@@ -152,7 +156,7 @@ class GSTALVM:
         return    
 
     def run(self):
-        while(self._pc >= 0 and self._pc < len(self._codeMem)):
+        while(self._pc >= 0 and self._pc < self._inst_count):
             self.execute()
         return  
 
@@ -367,7 +371,7 @@ class GSTALVM:
             self.push(DataCell(x))     
             self._pc = self._pc + 1            
         except Exception:
-            self.output.insert(END,"Oops! This is not an int. Please try again.")
+            self.print_val("Oops! This is not an int. Please try again.")
         return
     
     def LLF(self, x):                                                      
@@ -401,37 +405,35 @@ class GSTALVM:
 #Input Output    
     def PTI(self):
         a = self.pop()
-        self.output.insert(END, f"{a.int()}")
+        self.print_val(a.int())
         self._pc += 1
         return
     
     def PTF(self):
         a = self.pop()
-        self.output.insert(END, f"{a.float()}") #scientific notation??
+        self.print_val(a.float()) #scientific notation??
         self._pc += 1
         return    
     
     def PTC(self):
         a = self.pop()
-        self.output.insert(END, (f"{a.int()}"))
+        self.print_val("%c"%a.int())
         self._pc += 1
         return
     
     def PTL(self):
-        self.output.insert(END, "\n")
+        self.print_val("\n")
         self._pc += 1
         return
     
     def INI(self):
-        old = len(self.output.get("1.0", 'end-1c'))
-        a  = int(self.output.get(old, END))
+        a  = int(self.get_val())
         self.push(DataCell(a))
         self._pc += 1
         return       
     
     def INF(self):
-        old = len(self.output.get("1.0", 'end-1c'))
-        a  = float(self.output.get(old, END))
+        a = float(self.get_val())
         self.push(DataCell(a))
         self._pc += 1
         return    
@@ -457,14 +459,14 @@ class GSTALVM:
         return
     
     def JMP(self, x):
-        if(x >=len(self._codeMem)):
+        if(x >=self._inst_count):
             self.runError()
         else: 
             self._pc = x
         return
     
     def JPF(self, x):   
-        if(x >=len(self._codeMem)):
+        if(x >=self._inst_count):
             self.runError()
         else:         
             a = self.pop()
@@ -490,7 +492,7 @@ class GSTALVM:
         return
     
     def RET(self): 
-        if(self._dataMem[self._act + 1].int() + 1 >= len(self._codeMem)):
+        if(self._dataMem[self._act + 1].int() + 1 >= self._inst_count):
             self.runError()
         else:    
             pop_this_many = self._tos - (self._act - 1)   
@@ -509,3 +511,19 @@ class GSTALVM:
     def HLT(self):
         self._pc = -1
         return  
+    
+    # INPUT/OUTPUT HANDLING 
+
+    def print_val(self, val): 
+        if True: # temporary. will be changed to allow different outputs based on running enviroment 
+            self.terminal.write(val)
+
+    def get_val(self):
+        self.terminal.write("\n")
+        val = self.terminal.get()
+        return val
+
+
+        
+
+
