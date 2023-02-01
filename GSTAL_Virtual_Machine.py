@@ -13,8 +13,9 @@
 #-------------------------------------------------------------------
 import sys
 import argparse
+import time
 from gstalmem import DataCell
-from terminal import Terminal
+from uimanager import Terminal
 
 #--------------------------GSTALVM-----------------------------------------------    
 
@@ -128,7 +129,7 @@ class GSTALVM:
                 allPiece.append(tuple(instr))
                 allInstr.append(instr[0])
             else:
-                self.print_val(END, "error")
+                self.print_val("error")
 #check it
         i = 0
         while i < len(allInstr):
@@ -140,12 +141,14 @@ class GSTALVM:
                 self.print_val(f"This instruction is not in the GSTAL dictionary: {opcode}")
             i = i+1    
         self._inst_count = len(self._codeMem)
+        print("loaded", self._inst_count)
         return flag
             
             
     def execute(self):       
         if(self._pc < 0 or self._pc >= self._inst_count):
             return
+        self.editor.highlight_line(self._pc + 1)
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
         instr = "self."+opcode+"("
@@ -155,10 +158,17 @@ class GSTALVM:
         exec(instr)
         return    
 
+    # def run(self):
+    #     while(self._pc >= 0 and self._pc < self._inst_count):
+    #         self.execute()
+    #     return  
+
     def run(self):
-        while(self._pc >= 0 and self._pc < self._inst_count):
-            self.execute()
-        return  
+        self.execute()
+        if not self.finished_execution():
+            self.root.after(int(self.delay.get()), self.run)
+        else: 
+            self.editor.clear_highlight()
 
     def step_run(self):
         self.execute()
