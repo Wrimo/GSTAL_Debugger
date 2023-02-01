@@ -20,8 +20,14 @@ class UIObject:
     def write(self, val):
         self.object.insert(END, (f"{val}"))
 
+    def write_top(self, val):
+        self.object.insert(INSERT, (f"{val}"))
+
     def get(self, _start = 0, _end = END): 
          return self.object.get(float(_start), _end)
+
+    def clear(self):
+        self.object.delete(1.0, END)
 
 
 class Editor(UIObject): 
@@ -39,7 +45,6 @@ class Editor(UIObject):
     
     def remove_highlight(self, line): 
         self.object.tag_remove("step", float(line), f"{float(line)} lineend")
-    
 
 class Terminal(UIObject): 
     def __init__(self, tk_object):
@@ -48,7 +53,12 @@ class Terminal(UIObject):
     
     def write(self, val):
         self.object.configure(state="normal")
-        self.object.insert(END, (f"{val}"))
+        super().write(val)
+        self.object.configure(state="disabled")
+
+    def write_top(self, val):
+        self.object.configure(state="normal")
+        super().write_top(val)
         self.object.configure(state="disabled")
 
     def get(self): 
@@ -67,5 +77,16 @@ class Terminal(UIObject):
 
     def clear(self):
         self.object.configure(state="normal")
-        self.object.delete(1.0, END)
+        super().clear()
         self.object.configure(state="disabled")
+ 
+class Stack(Terminal):
+    def update_stack(self, stack):
+        self.clear()
+        for i in range(len(stack) - 1, -1, -1):
+            self.write("-------------------")
+            self.write("\n")
+            self.write("| ")
+            self.write(stack[i].int()) 
+            self.write("                 |")
+            self.write("\n")

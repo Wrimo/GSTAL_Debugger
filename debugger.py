@@ -162,33 +162,44 @@ root.bind("<Control-q>", close)
 # root.grid_rowconfigure(0, weight=2)
 # root.grid_columnconfigure(0, weight=4)
 
-img = tk.PhotoImage(file="Assets/play.png")
-play_button = tk.Button(root, image=img, command=run_button, compound=CENTER)
-play_button.grid(column=0, row=0)
+# img = tk.PhotoImage(file="Assets/play.png")
+# play_button = tk.Button(root, image=img, command=run_button, compound=CENTER)
+# play_button.grid(column=0, row=0)
 
-# timer_label = Label(text="Speed")
-# timer_label.grid(column=1, row=0)
+# root.grid_columnconfigure(0, weight=0)
+# root.grid_columnconfigure(1, weight=1)
 
-# root.grid_columnconfigure(1, weight=0)
+timer_label = Label(text="Speed")
+timer_label.pack(side = TOP) #grid(column=0, row=0, sticky=E)
+
 
 timer_text = tk.Text(root, font=("haveltica 9 bold"), width=7, height=1)
-timer_text.grid(column=1, row=0)
+timer_text.pack(side = TOP) #grid(column=1, row=0, sticky=W)
 timer_text.insert(END, "1000")
 
 editor = ScrolledText(root, font=("haveltica 9 bold"),
                       wrap="none", width=45, height=45)
-editor.grid(column=1, row=1)
+editor.pack(side = LEFT) #grid(column=0, row=1)
 editor.tag_configure("step", background="red")
 
 
 output = ScrolledText(root, font=("haveltica 9 bold"),
                       wrap="none", width=45, height=45)
-output.grid(column=2, row=1)
+output.pack(side = LEFT) #grid(column=1, row=1)
 output.configure(state="disabled")
 
+stack = ScrolledText(root, font=("haveltica 9 bold"),
+                     wrap="none", width=45, height=45)
+stack.pack(side= LEFT) #grid(column=2, row=1)
+stack.configure(state="disabled")
 
-output.insert(END, "Output!")
-# output.config(state='disabled')
+tos_label = Label(text="tos")
+tos_label.pack()
+pc_label = Label(text="pc")
+pc_label.pack()
+act_label = Label(text="act")
+act_label.pack()
+
 
 
 file_menu = Menu(menu, tearoff=0)
@@ -221,8 +232,10 @@ root.bind("<Return>", enter_pressed)
 vm = GSTALVM()
 vm.terminal = Terminal(output)
 vm.editor = Editor(editor)
+vm.stack = Stack(stack)
 vm.delay = UIObject(timer_text)
-vm.root = root 
+
+vm.root = root
 new_file()
 
 root.mainloop()

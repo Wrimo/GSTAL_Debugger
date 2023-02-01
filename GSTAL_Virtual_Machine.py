@@ -141,7 +141,6 @@ class GSTALVM:
                 self.print_val(f"This instruction is not in the GSTAL dictionary: {opcode}")
             i = i+1    
         self._inst_count = len(self._codeMem)
-        print("loaded", self._inst_count)
         return flag
             
             
@@ -156,6 +155,7 @@ class GSTALVM:
             instr = instr + str(operand)
         instr = instr + ")"
         exec(instr)
+        self.stack.update_stack(self._dataMem)
         return    
 
     # def run(self):
