@@ -169,7 +169,7 @@ root.bind("<Control-q>", close)
 # root.grid_columnconfigure(0, weight=0)
 # root.grid_columnconfigure(1, weight=1)
 
-timer_label = Label(text="Speed")
+timer_label = Label(text="Delay")
 timer_label.pack(side = TOP) #grid(column=0, row=0, sticky=E)
 
 
@@ -234,6 +234,9 @@ vm.terminal = Terminal(output)
 vm.editor = Editor(editor)
 vm.stack = Stack(stack)
 vm.delay = UIObject(timer_text)
+vm.lab_tos = RegisterValue(tos_label, "tos")
+vm.lab_pc = RegisterValue(pc_label, "pc")
+vm.lab_act = RegisterValue(act_label, "act")
 
 vm.root = root
 new_file()

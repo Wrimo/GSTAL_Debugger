@@ -30,6 +30,13 @@ class UIObject:
         self.object.delete(1.0, END)
 
 
+class RegisterValue(UIObject):
+    def __init__(self, tk_object, register):
+        self.object = tk_object
+        self.reg = register
+    def write(self, val):
+        self.object.configure(text=f"{self.reg}: {val}")
+
 class Editor(UIObject): 
     def __init__(self, tk_object):
         super().__init__(tk_object)

@@ -155,7 +155,13 @@ class GSTALVM:
             instr = instr + str(operand)
         instr = instr + ")"
         exec(instr)
+
+        # update UI components. 
         self.stack.update_stack(self._dataMem)
+        self.lab_tos.write(self._tos)
+        self.lab_act.write(self._act)
+        self.lab_pc.write(self._pc)
+        self.editor.object.see(float(self._pc + 15))
         return    
 
     # def run(self):
