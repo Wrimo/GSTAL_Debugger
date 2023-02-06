@@ -1,17 +1,39 @@
 # ---------------------------------------------------------
-# File--------terminal.py
-# Developer---Brennan Cottrell
+# File--------uimaanager.py
+# Developer---B. Cottrell
 # Date--------January, 20 2023
 #
-# Definition of a class to handle writing to and getting from
-# the debugger's terminal. Allows for one set of methods for both
+# Definition of classes to handle writing to and getting
+# tkinter objects. Allows for one set of methods for both
 # debugger.py and GSTAL_Virtual_Machine.py
 # -------------------------------------------------------------------
 
 
 from tkinter import *
 from tkinter import ttk
+from ui_object import *
 
+
+class View: 
+    def update(self, stack, tos, act, pc): 
+        self.stack.update_stack(stack, act)
+        self.regs.write(tos, act, pc)
+        self.editor.highlight_line(pc + 1)
+        self.editor.object.see(float(pc + 15))
+    
+    def wait(self, call_back): 
+          self.root.after(int(self.delay.get()), call_back)
+
+    def write_terminal(self, val):
+        self.terminal.write(val)
+
+    def get_terminal(self):
+        self.terminal.write("\n")
+        val = self.terminal.get()
+        return val
+    
+    def clear_highlight(self):
+        self.editor.clear_highlight()
 
 class UIObject:
     def __init__(self, tk_object):
@@ -31,11 +53,10 @@ class UIObject:
 
 
 class RegisterValue(UIObject):
-    def __init__(self, tk_object, register):
+    def __init__(self, tk_object):
         self.object = tk_object
-        self.reg = register
-    def write(self, val):
-        self.object.configure(text=f"{self.reg}: {val}")
+    def write(self, tos, act, pc):
+        self.object.configure(text=f"tos: {tos} act: {act} pc: {pc}")
 
 class Editor(UIObject): 
     def __init__(self, tk_object):
@@ -87,13 +108,11 @@ class Terminal(UIObject):
         super().clear()
         self.object.configure(state="disabled")
  
-class Stack(Terminal):
-    def update_stack(self, stack):
-        self.clear()
-        for i in range(len(stack) - 1, -1, -1):
-            self.write("-------------------")
-            self.write("\n")
-            self.write("| ")
-            self.write(stack[i].int()) 
-            self.write("                 |")
-            self.write("\n")
+class Stack(UIObject):
+    def update_stack(self, stack, act):
+        self.object.reset()
+        for i in range(0, len(stack)):
+            if i == act: 
+                self.object.add_text(f"{i}: {stack[i].int()}", True)                
+            else:
+                self.object.add_text(f"{i}: {stack[i].int()}", False)

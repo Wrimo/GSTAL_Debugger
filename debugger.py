@@ -17,6 +17,7 @@ import os
 import subprocess
 
 from uimanager import *
+from custom_ui import *
 
 
 # USER ACTIONS
@@ -32,7 +33,7 @@ def open_file(event=None):
         editor.insert(1.0, code)
 
     file_name = os.path.basename(file_path)
-    vm.terminal.clear()
+    v.terminal.clear()
 
 
 def new_file(event=None):
@@ -77,8 +78,8 @@ def close(event=None):
 
 def run(event=None):
     global file_name
-    vm.terminal.write(f"\nRunning {file_name}")
-    vm.terminal.write("\n---------\n")
+    v.terminal.write(f"\nRunning {file_name}")
+    v.terminal.write("\n---------\n")
     # start_program()
     vm.reset()
     vm.run()
@@ -91,7 +92,7 @@ def stop(event=None):
 def step_run(event=None):
     if vm.finished_execution():
         vm.reset()
-        vm.terminal.write("\n")
+        v.terminal.write("\n")
     vm.execute()
 
 
@@ -114,7 +115,7 @@ def exit(event=None):
 
 # HELPER FUNCTIONS
 def enter_pressed(event):
-    vm.terminal.entered.set(vm.terminal.entered.get())
+    v.terminal.entered.set(v.terminal.entered.get())
 
 
 def on_exit():
@@ -143,7 +144,7 @@ def stop_program():
 
 
 root = Tk()
-root.geometry("1366x768")
+root.geometry("+1+1") # root.geometry("1366x768")
 root.title = "GSTAL Debugger"
 is_running = False
 
@@ -166,39 +167,52 @@ root.bind("<Control-q>", close)
 # play_button = tk.Button(root, image=img, command=run_button, compound=CENTER)
 # play_button.grid(column=0, row=0)
 
-# root.grid_columnconfigure(0, weight=0)
-# root.grid_columnconfigure(1, weight=1)
-
-timer_label = Label(text="Delay")
-timer_label.pack(side = TOP) #grid(column=0, row=0, sticky=E)
 
 
-timer_text = tk.Text(root, font=("haveltica 9 bold"), width=7, height=1)
-timer_text.pack(side = TOP) #grid(column=1, row=0, sticky=W)
+
+frame1 = Frame(width=400, height=10)
+frame1.grid(column=0, row=0, sticky=EW, columnspan=2)
+
+
+frame2 = Frame(width=400, height=400)
+frame2.grid(column=0, row=1, sticky=NS)
+
+frame3 = Frame(width=400, height=400)
+frame3.grid(column=1, row=1, sticky=NS)
+
+frame4 = Frame(width=400, height=10)
+frame4.grid(column=0, row=2, sticky=EW, columnspan=2)
+
+
+
+
+register_label = Label(frame4, text="tos: act: pc:")
+register_label.grid(column=0, row=0, sticky=S)
+
+
+timer_label = Label(frame1, text="Delay")
+timer_label.grid(column=0, row=0, sticky=E)
+
+timer_text = tk.Text(frame1, font=("haveltica 9 bold"), width=7, height=1)
+timer_text.grid(column=1, row=0, sticky=W)
 timer_text.insert(END, "1000")
 
-editor = ScrolledText(root, font=("haveltica 9 bold"),
+editor = ScrolledText(frame2, font=("haveltica 9 bold"),
                       wrap="none", width=45, height=45)
-editor.pack(side = LEFT) #grid(column=0, row=1)
+editor.grid(column=0, row=0)
 editor.tag_configure("step", background="red")
 
 
-output = ScrolledText(root, font=("haveltica 9 bold"),
-                      wrap="none", width=45, height=45)
-output.pack(side = LEFT) #grid(column=1, row=1)
+
+output = ScrolledText(frame3, font=("haveltica 9 bold"),
+                      wrap="none", width=90, height=20)
+output.grid(column=1, row=1, sticky=N)
 output.configure(state="disabled")
 
-stack = ScrolledText(root, font=("haveltica 9 bold"),
-                     wrap="none", width=45, height=45)
-stack.pack(side= LEFT) #grid(column=2, row=1)
-stack.configure(state="disabled")
+stack = UpwardText(frame3,width=725, height=372)
+stack.grid(column=1, row=2)
 
-tos_label = Label(text="tos")
-tos_label.pack()
-pc_label = Label(text="pc")
-pc_label.pack()
-act_label = Label(text="act")
-act_label.pack()
+
 
 
 
@@ -230,15 +244,16 @@ run_menu.add_command(label="Run to end", command=run_end)
 root.bind("<Return>", enter_pressed)
 
 vm = GSTALVM()
-vm.terminal = Terminal(output)
-vm.editor = Editor(editor)
-vm.stack = Stack(stack)
-vm.delay = UIObject(timer_text)
-vm.lab_tos = RegisterValue(tos_label, "tos")
-vm.lab_pc = RegisterValue(pc_label, "pc")
-vm.lab_act = RegisterValue(act_label, "act")
 
-vm.root = root
+v = View()
+v.terminal = Terminal(output)
+v.editor = Editor(editor)
+v.stack = Stack(stack)
+v.delay = UIObject(timer_text)
+v.regs = RegisterValue(register_label)
+v.root = root
+
+vm.view = v
 new_file()
 
 root.mainloop()
