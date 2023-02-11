@@ -29,8 +29,8 @@ class UpwardText(Frame):
         self.y = kwargs["height"]
 
     def add_text(self, s, highlight=False):
-        text = self.canvas.create_text(self.x, self.y, anchor=SW)
-        self.y -= 20
+        text = self.canvas.create_text(self.x, self.y, anchor=SW, font=("haveltica 20 bold"))
+        self.y -= 25
         self.canvas.itemconfigure(text, text=s)
         if highlight: 
             self.canvas.itemconfigure(text, fill="red")

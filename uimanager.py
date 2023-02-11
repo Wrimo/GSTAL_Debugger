@@ -14,15 +14,19 @@ from tkinter import ttk
 from ui_object import *
 
 
-class View: 
+class View:      
+        
     def update(self, stack, tos, act, pc): 
         self.stack.update_stack(stack, act)
-        self.regs.write(tos, act, pc)
+        self.tos_label.write(tos)
+        self.act_label.write(act)
+        self.pc_label.write(pc)
         self.editor.highlight_line(pc + 1)
         self.editor.object.see(float(pc + 15))
     
     def wait(self, call_back): 
-          self.root.after(int(self.delay.get()), call_back)
+          print(self.delay)
+          self.root.after(self.delay, call_back)
 
     def write_terminal(self, val):
         self.terminal.write(val)
@@ -55,8 +59,10 @@ class UIObject:
 class RegisterValue(UIObject):
     def __init__(self, tk_object):
         self.object = tk_object
-    def write(self, tos, act, pc):
-        self.object.configure(text=f"tos: {tos} act: {act} pc: {pc}")
+        self.text = self.object["text"]
+
+    def write(self, val):
+        self.object.configure(text=f"{self.text} {val}")
 
 class Editor(UIObject): 
     def __init__(self, tk_object):

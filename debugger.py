@@ -14,7 +14,6 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.scrolledtext import ScrolledText
 from GSTAL_Virtual_Machine import GSTALVM
 import os
-import subprocess
 
 from uimanager import *
 from custom_ui import *
@@ -101,6 +100,9 @@ def run_end(event=None):
     vm.run()
 
 
+def slider_change(event):
+    v.delay = int(speed_slider.get() * 1000)
+
 def run_button():
     if vm._pc > 0:
         stop_program()
@@ -144,7 +146,9 @@ def stop_program():
 
 
 root = Tk()
-root.geometry("+1+1") # root.geometry("1366x768")
+root.title("The BC Gstal Debugger")
+root.geometry("+1+1")
+root.resizable(0, 0)
 root.title = "GSTAL Debugger"
 is_running = False
 
@@ -160,61 +164,66 @@ root.bind("<Control-S>", save_as)
 root.bind("<Control-q>", close)
 
 
-# root.grid_rowconfigure(0, weight=2)
-# root.grid_columnconfigure(0, weight=4)
-
 # img = tk.PhotoImage(file="Assets/play.png")
 # play_button = tk.Button(root, image=img, command=run_button, compound=CENTER)
 # play_button.grid(column=0, row=0)
 
 
+control_frame = Frame(root, width=400, height=10)
+control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW)
 
 
-frame1 = Frame(width=400, height=10)
-frame1.grid(column=0, row=0, sticky=EW, columnspan=2)
+editor_frame = Frame(root, width=400, height=400)
+editor_frame.grid(column=0, row=1, sticky=NSEW, rowspan=2)
+
+root.grid_columnconfigure(0, weight=1)
+
+output_frame = Frame(root, width=400, height=400)
+output_frame.grid(column=1, row=1, sticky=NSEW)
+
+stack_reg_frame = Frame(root, width=400, height=400)
+stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
+
+stack_frame = Frame(stack_reg_frame, width=200, height=400)
+stack_frame.grid(column=0, row=0, sticky=NSEW)
+
+reg_frame = Frame(stack_reg_frame, bg="grey", width=200, height=400)
+reg_frame.grid(column=1, row=0, sticky=NSEW)
+
+stack_reg_frame.grid_columnconfigure(1, weight=1)
 
 
-frame2 = Frame(width=400, height=400)
-frame2.grid(column=0, row=1, sticky=NS)
+speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
+speed_label.grid(column=0, row=0, sticky=E)
 
-frame3 = Frame(width=400, height=400)
-frame3.grid(column=1, row=1, sticky=NS)
+speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
+speed_slider.grid(column=1, row=0)
 
-frame4 = Frame(width=400, height=10)
-frame4.grid(column=0, row=2, sticky=EW, columnspan=2)
-
-
-
-
-register_label = Label(frame4, text="tos: act: pc:")
-register_label.grid(column=0, row=0, sticky=S)
-
-
-timer_label = Label(frame1, text="Delay")
-timer_label.grid(column=0, row=0, sticky=E)
-
-timer_text = tk.Text(frame1, font=("haveltica 9 bold"), width=7, height=1)
-timer_text.grid(column=1, row=0, sticky=W)
-timer_text.insert(END, "1000")
-
-editor = ScrolledText(frame2, font=("haveltica 9 bold"),
+editor = ScrolledText(editor_frame, font=("haveltica 9 bold"),
                       wrap="none", width=45, height=45)
-editor.grid(column=0, row=0)
+editor.grid(column=0, row=0, sticky=NSEW)
 editor.tag_configure("step", background="red")
 
 
-
-output = ScrolledText(frame3, font=("haveltica 9 bold"),
+output = ScrolledText(output_frame, font=("haveltica 9 bold"),
                       wrap="none", width=90, height=20)
-output.grid(column=1, row=1, sticky=N)
+output.grid(column=0, row=0, sticky=NSEW)
 output.configure(state="disabled")
 
-stack = UpwardText(frame3,width=725, height=372)
-stack.grid(column=1, row=2)
+stack = UpwardText(stack_frame, width=370, height=372)
+stack.grid(column=0, row=0, sticky=NSEW)
 
 
+tos_label = Label(reg_frame, bg="grey", text="tos",
+                  font=("haveltica 26 bold"))
+tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=NSEW)
 
+pc_label = Label(reg_frame, bg="grey", text="pc", font=("haveltica 26 bold"))
+pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=NSEW)
 
+act_label = Label(reg_frame, bg="grey", text="act",
+                  font=("haveltica 26 bold"))
+act_label.grid(column=0, row=2, pady=30, padx=15, sticky=NSEW)
 
 file_menu = Menu(menu, tearoff=0)
 edit_menu = Menu(menu, tearoff=0)
@@ -249,11 +258,14 @@ v = View()
 v.terminal = Terminal(output)
 v.editor = Editor(editor)
 v.stack = Stack(stack)
-v.delay = UIObject(timer_text)
-v.regs = RegisterValue(register_label)
+v.act_label = RegisterValue(act_label)
+v.pc_label = RegisterValue(pc_label)
+v.tos_label = RegisterValue(tos_label)
 v.root = root
 
 vm.view = v
+speed_slider.set(0.5)
 new_file()
+
 
 root.mainloop()
