@@ -77,8 +77,7 @@ def close(event=None):
 
 def run(event=None):
     global file_name
-    v.terminal.write(f"\nRunning {file_name}")
-    v.terminal.write("\n---------\n")
+    v.terminal.clear()
     # start_program()
     vm.reset()
     vm.run()
@@ -91,7 +90,7 @@ def stop(event=None):
 def step_run(event=None):
     if vm.finished_execution():
         vm.reset()
-        v.terminal.write("\n")
+        v.new_line_terminal()
     vm.execute()
 
 
@@ -205,10 +204,8 @@ editor.grid(column=0, row=0, sticky=NSEW)
 editor.tag_configure("step", background="red")
 
 
-output = ScrolledText(output_frame, font=("haveltica 9 bold"),
-                      wrap="none", width=90, height=20)
+output = OutputBox(output_frame, width=550, height=300)
 output.grid(column=0, row=0, sticky=NSEW)
-output.configure(state="disabled")
 
 stack = UpwardText(stack_frame, width=370, height=372)
 stack.grid(column=0, row=0, sticky=NSEW)

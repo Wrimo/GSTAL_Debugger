@@ -15,7 +15,6 @@ from ui_object import *
 
 
 class View:      
-        
     def update(self, stack, tos, act, pc): 
         self.stack.update_stack(stack, act)
         self.tos_label.write(tos)
@@ -25,14 +24,16 @@ class View:
         self.editor.object.see(float(pc + 15))
     
     def wait(self, call_back): 
-          print(self.delay)
           self.root.after(self.delay, call_back)
+
+    def new_line_terminal(self):
+        self.terminal.new_line()
 
     def write_terminal(self, val):
         self.terminal.write(val)
 
     def get_terminal(self):
-        self.terminal.write("\n")
+        self.new_line_terminal()
         val = self.terminal.get()
         return val
     
@@ -85,34 +86,20 @@ class Terminal(UIObject):
         self.object = tk_object
         self.entered = IntVar()  # used by the debugger to signal when the user has finished entering input 
     
-    def write(self, val):
-        self.object.configure(state="normal")
-        super().write(val)
-        self.object.configure(state="disabled")
+    def new_line(self):
+        self.object.create_text()
 
-    def write_top(self, val):
-        self.object.configure(state="normal")
-        super().write_top(val)
-        self.object.configure(state="disabled")
+    def write(self, val):
+        self.object.add_text(val)
 
     def get(self): 
-        self.object.configure(state="normal")
-        start = self.get_line_count()
+        self.object.add_entry()
         self.object.wait_variable(self.entered)
-        val = self.object.get(float(start), END)
-        self.object.configure(state="disabled")
-        return val
+        return self.object.get_entry()
 
-    def get_size(self):
-        return len(self.object.get("1.0", "end-1c"))
-
-    def get_line_count(self): # https://stackoverflow.com/questions/4609382/getting-the-total-number-of-lines-in-a-tkinter-text-widget
-        return int(self.object.index('end-1c').split('.')[0])
 
     def clear(self):
-        self.object.configure(state="normal")
-        super().clear()
-        self.object.configure(state="disabled")
+        self.object.clear()
  
 class Stack(UIObject):
     def update_stack(self, stack, act):

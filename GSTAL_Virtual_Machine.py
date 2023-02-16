@@ -7,15 +7,14 @@
 #
 # This program is a GSTAL Virtual Machine
 # 
-# Modified in January 2023 by Brennan Cottrell 
-# to allow interpreting one line at a time 
-# and input and output in a custom debugger
+# Modified in Spring 2023 by B. Cottrell 
+# To connect it to GSTAL Debugger
 #-------------------------------------------------------------------
 import sys
 import argparse
 import time
 from gstalmem import DataCell
-from uimanager import Terminal
+from uimanager import View
 
 #--------------------------GSTALVM-----------------------------------------------    
 
@@ -47,10 +46,10 @@ class GSTALVM:
         return self._tos+1
     
     def finished_execution(self):
-        return self._pc >= self._inst_count
+        return self._pc >= self._inst_count or self._stopped
 
     def runError(self):    
-        self.print_val("ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
+        self.view.write_terminal("ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
         parser = argparse.ArgumentParser() #read command line check for -d 
         parser.add_argument('-d', '--stackdump') #creates argument stackdump 
         stackdump=True
@@ -60,7 +59,7 @@ class GSTALVM:
             for i in range(0, x):
                 file.write(str(self.pop()))
             file.close()
-            self._pc = -1 
+            self.stop()
         return sys.exit()                            
 
     def reset(self): #stackDump 
@@ -68,15 +67,24 @@ class GSTALVM:
         for i in range (0, x):
             self.pop()
         self._pc = 0    
+        self._stopped = False
         return    
+
+    def stop(self):
+        self._pc = -1
+        self._stopped = True
+        self.view.clear_highlight()
+        return
 
     def full_reset(self): # resets code and data memory 
         self._tos = -1
         self._pc = 0
         self._act = 0
         self._inst_count = 0
+        self._stopped = False
         self._dataMem = []
         self._codeMem = []
+        return
 
 
     def load(self, file):   #add flag, check operand is valid 
@@ -116,7 +124,7 @@ class GSTALVM:
             f = open(f)
         except Exception: 
             flag=True
-            self.print_val("Error: File name not valid")
+            self.view.write_terminal("Error: File name not valid")
     
         for line in f:
             line=line.upper()
@@ -129,7 +137,7 @@ class GSTALVM:
                 allPiece.append(tuple(instr))
                 allInstr.append(instr[0])
             else:
-                self.print_val("error")
+                self.view.write_terminal("error")
 #check it
         i = 0
         while i < len(allInstr):
@@ -138,7 +146,7 @@ class GSTALVM:
                 self._codeMem = allPiece
             else:
                 flag = True
-                self.print_val(f"This instruction is not in the GSTAL dictionary: {opcode}")
+                self.view.write_terminal(f"This instruction is not in the GSTAL dictionary: {opcode}")
             i = i+1    
         self._inst_count = len(self._codeMem)
         return flag
@@ -147,7 +155,7 @@ class GSTALVM:
     def execute(self):       
         if(self._pc < 0 or self._pc >= self._inst_count):
             return
-        self.editor.highlight_line(self._pc + 1)
+            
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
         instr = "self."+opcode+"("
@@ -157,11 +165,7 @@ class GSTALVM:
         exec(instr)
 
         # update UI components. 
-        self.stack.update_stack(self._dataMem)
-        self.lab_tos.write(self._tos)
-        self.lab_act.write(self._act)
-        self.lab_pc.write(self._pc)
-        self.editor.object.see(float(self._pc + 15))
+        self.view.update(self._dataMem, self._tos, self._act, self._pc)        
         return    
 
     # def run(self):
@@ -172,9 +176,9 @@ class GSTALVM:
     def run(self):
         self.execute()
         if not self.finished_execution():
-            self.root.after(int(self.delay.get()), self.run)
+            self.view.wait(self.run)
         else: 
-            self.editor.clear_highlight()
+            self.view.clear_highlight()
 
     def step_run(self):
         self.execute()
@@ -387,7 +391,7 @@ class GSTALVM:
             self.push(DataCell(x))     
             self._pc = self._pc + 1            
         except Exception:
-            self.print_val("Oops! This is not an int. Please try again.")
+            self.view.write_terminal("Oops! This is not an int. Please try again.")
         return
     
     def LLF(self, x):                                                      
@@ -421,35 +425,35 @@ class GSTALVM:
 #Input Output    
     def PTI(self):
         a = self.pop()
-        self.print_val(a.int())
+        self.view.write_terminal(a.int())
         self._pc += 1
         return
     
     def PTF(self):
         a = self.pop()
-        self.print_val(a.float()) #scientific notation??
+        self.view.write_terminal(a.float()) #scientific notation??
         self._pc += 1
         return    
     
     def PTC(self):
         a = self.pop()
-        self.print_val("%c"%a.int())
+        self.view.write_terminal("%c"%a.int())
         self._pc += 1
         return
     
     def PTL(self):
-        self.print_val("\n")
+        self.view.new_line_terminal()
         self._pc += 1
         return
     
     def INI(self):
-        a  = int(self.get_val())
+        a  = int(self.view.get_terminal())
         self.push(DataCell(a))
         self._pc += 1
         return       
     
     def INF(self):
-        a = float(self.get_val())
+        a = float(self.view.get_terminal())
         self.push(DataCell(a))
         self._pc += 1
         return    
@@ -525,21 +529,5 @@ class GSTALVM:
         return
     
     def HLT(self):
-        self._pc = -1
+        self.stop()
         return  
-    
-    # INPUT/OUTPUT HANDLING 
-
-    def print_val(self, val): 
-        if True: # temporary. will be changed to allow different outputs based on running enviroment 
-            self.terminal.write(val)
-
-    def get_val(self):
-        self.terminal.write("\n")
-        val = self.terminal.get()
-        return val
-
-
-        
-
-
