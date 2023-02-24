@@ -8,6 +8,7 @@
 #---------------------------------------------------------------------------
 
 import struct
+import sys
 
 
 class DataCell:
@@ -28,6 +29,16 @@ class DataCell:
     def float(self):
         value = struct.unpack("!d", self._content)[0]
         return value
+    
+    def char(self): 
+        value = chr(self.int())
+        return value
+    
+    def bin(self): 
+        return bin(int.from_bytes(self._content, byteorder=sys.byteorder))[2:]
+
+    def hex(self): 
+        return self._content.hex()
     
 
 class CodeCell:

@@ -38,7 +38,7 @@ def open_file(event=None):
 def new_file(event=None):
     global file_path
     file_path = ""
-    vm.reset()
+    vm.full_reset()
     editor.delete(1.0, END)
     editor.insert(END, "NOP ;GSTAL Debugger")
 
@@ -77,9 +77,9 @@ def close(event=None):
 
 def run(event=None):
     global file_name
-    v.terminal.clear()
+    v.reset()
     # start_program()
-    vm.reset()
+    vm.stack_reset()
     vm.run()
 
 
@@ -89,7 +89,7 @@ def stop(event=None):
 
 def step_run(event=None):
     if vm.finished_execution():
-        vm.reset()
+        vm.full_reset()
         v.new_line_terminal()
     vm.execute()
 
@@ -112,11 +112,10 @@ def run_button():
 
 def exit(event=None):
     on_exit()
-
-
+    
 # HELPER FUNCTIONS
 def enter_pressed(event):
-    v.terminal.entered.set(v.terminal.entered.get())
+    v.input_done()
 
 
 def on_exit():
@@ -131,7 +130,7 @@ def start_program():
     img = tk.PhotoImage(file="Assets/stop-button.png")
     play_button.config(image=img)
     # is_running = True
-    vm.reset()
+    vm.full_reset()
     vm.run()
 
 
@@ -141,7 +140,7 @@ def stop_program():
     is_running = False
     img = tk.PhotoImage(file="Assets/play.png")
     play_button.config(image=img)
-    vm.reset()
+    vm.full_reset()
 
 
 root = Tk()
@@ -151,6 +150,8 @@ root.resizable(0, 0)
 root.title = "GSTAL Debugger"
 is_running = False
 
+vm = GSTALVM()
+v = View()
 
 menu = Menu(root)
 root.config(menu=menu)
@@ -191,36 +192,54 @@ reg_frame.grid(column=1, row=0, sticky=NSEW)
 
 stack_reg_frame.grid_columnconfigure(1, weight=1)
 
-
+# control bar 
 speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
 speed_label.grid(column=0, row=0, sticky=E)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
-speed_slider.grid(column=1, row=0)
+speed_slider.grid(column=1, row=0, padx=5)
 
-editor = ScrolledText(editor_frame, font=("haveltica 9 bold"),
+int_button = Button(control_frame, text="INT", command=v.stack_int)
+int_button.grid(column=2, row=0)
+
+float_button = Button(control_frame, text="FLOAT", command=v.stack_float)
+float_button.grid(column=3, row=0)
+
+char_button = Button(control_frame, text="CHAR", command=v.stack_char)
+char_button.grid(column=4, row=0)
+
+bin_button = Button(control_frame, text="BIN", command=v.stack_bin)
+bin_button.grid(column=5, row=0)
+
+hex_button = Button(control_frame, text="HEX", command=v.stack_hex)
+hex_button.grid(column=6, row=0)
+
+# editor
+editor = EditorObject(editor_frame, font=("haveltica 9 bold"),
                       wrap="none", width=45, height=45)
 editor.grid(column=0, row=0, sticky=NSEW)
 editor.tag_configure("step", background="red")
 
-
-output = OutputBox(output_frame, width=550, height=300)
+# output
+output = TerminalObject(output_frame, width=550, height=300)
 output.grid(column=0, row=0, sticky=NSEW)
 
-stack = UpwardText(stack_frame, width=370, height=372)
+
+# stack and register view 
+stack = StackObject(stack_frame, width=370, height=372)
 stack.grid(column=0, row=0, sticky=NSEW)
 
-
-tos_label = Label(reg_frame, bg="grey", text="tos",
+tos_label = RegisterObject(reg_frame, bg="grey", text="tos",
                   font=("haveltica 26 bold"))
 tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=NSEW)
-
-pc_label = Label(reg_frame, bg="grey", text="pc", font=("haveltica 26 bold"))
+pc_label = RegisterObject(reg_frame, bg="grey", text="pc", font=("haveltica 26 bold"))
 pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=NSEW)
 
-act_label = Label(reg_frame, bg="grey", text="act",
+act_label = RegisterObject(reg_frame, bg="grey", text="act",
                   font=("haveltica 26 bold"))
 act_label.grid(column=0, row=2, pady=30, padx=15, sticky=NSEW)
+
+
 
 file_menu = Menu(menu, tearoff=0)
 edit_menu = Menu(menu, tearoff=0)
@@ -249,15 +268,13 @@ run_menu.add_command(label="Run to end", command=run_end)
 
 root.bind("<Return>", enter_pressed)
 
-vm = GSTALVM()
 
-v = View()
-v.terminal = Terminal(output)
-v.editor = Editor(editor)
-v.stack = Stack(stack)
-v.act_label = RegisterValue(act_label)
-v.pc_label = RegisterValue(pc_label)
-v.tos_label = RegisterValue(tos_label)
+v.terminal = output
+v.editor = editor
+v.stack = stack
+v.act_label = act_label
+v.pc_label = pc_label
+v.tos_label = tos_label
 v.root = root
 
 vm.view = v

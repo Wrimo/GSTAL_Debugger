@@ -20,7 +20,7 @@ from uimanager import View
 
 class GSTALVM: 
     def __init__(self):            #set initial values
-        self.full_reset()
+        self.init()
                                    #stack methods
     def isEmpty(self):
         return self._dataMem == []
@@ -28,12 +28,14 @@ class GSTALVM:
     def push(self, x):
         self._tos += 1
         self._dataMem.append(x) 
+        self.view.add_to_stack(x)
 
-    def pop(self):                 
+    def pop(self):                
         if(len(self._dataMem) < 1): #stackunderflow error            
             return self.runError()
         else:         
             self._tos -= 1
+            self.view.remove_from_stack()
             return self._dataMem.pop() 
 
     def peek(self):
@@ -62,7 +64,7 @@ class GSTALVM:
             self.stop()
         return sys.exit()                            
 
-    def reset(self): #stackDump 
+    def stack_reset(self): #stackDump 
         x = len(self._dataMem)
         for i in range (0, x):
             self.pop()
@@ -77,6 +79,11 @@ class GSTALVM:
         return
 
     def full_reset(self): # resets code and data memory 
+        self.stack_reset() 
+        self.init()
+        return
+
+    def init(self): 
         self._tos = -1
         self._pc = 0
         self._act = 0
@@ -84,8 +91,6 @@ class GSTALVM:
         self._stopped = False
         self._dataMem = []
         self._codeMem = []
-        return
-
 
     def load(self, file):   #add flag, check operand is valid 
         self.full_reset()
@@ -152,7 +157,7 @@ class GSTALVM:
         return flag
             
             
-    def execute(self):       
+    def execute(self):   
         if(self._pc < 0 or self._pc >= self._inst_count):
             return
             
@@ -162,10 +167,9 @@ class GSTALVM:
         if operand != None:
             instr = instr + str(operand)
         instr = instr + ")"
-        exec(instr)
-
+        exec(instr)  
         # update UI components. 
-        self.view.update(self._dataMem, self._tos, self._act, self._pc)        
+        self.view.update(self._dataMem, self._tos, self._act, self._pc)      
         return    
 
     # def run(self):
