@@ -199,19 +199,23 @@ speed_label.grid(column=0, row=0, sticky=E)
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
 speed_slider.grid(column=1, row=0, padx=5)
 
-int_button = Button(control_frame, text="INT", command=v.stack_int)
+
+stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
+stack_buttons.grid(column=0, row=1)
+
+int_button = Button(stack_buttons, text="INT", command=v.stack_int)
 int_button.grid(column=2, row=0)
 
-float_button = Button(control_frame, text="FLOAT", command=v.stack_float)
+float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
 float_button.grid(column=3, row=0)
 
-char_button = Button(control_frame, text="CHAR", command=v.stack_char)
+char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
 char_button.grid(column=4, row=0)
 
-bin_button = Button(control_frame, text="BIN", command=v.stack_bin)
+bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
 bin_button.grid(column=5, row=0)
 
-hex_button = Button(control_frame, text="HEX", command=v.stack_hex)
+hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
 hex_button.grid(column=6, row=0)
 
 # editor
@@ -221,12 +225,12 @@ editor.grid(column=0, row=0, sticky=NSEW)
 editor.tag_configure("step", background="red")
 
 # output
-output = TerminalObject(output_frame, width=550, height=300)
+output = TerminalObject(output_frame, width=550, height=350)
 output.grid(column=0, row=0, sticky=NSEW)
 
 
 # stack and register view 
-stack = StackObject(stack_frame, width=370, height=372)
+stack = StackObject(stack_frame, width=370, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
 tos_label = RegisterObject(reg_frame, bg="grey", text="tos",

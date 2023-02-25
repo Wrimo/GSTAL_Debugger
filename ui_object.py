@@ -41,12 +41,13 @@ class StackObject(Frame):
         self.y = kwargs["height"]
         self.stack = []
         self.state = StackObject.State.INT
-        self.font = Font(family="haveltica", size=20, weight="bold")
+        self.font_size = 20
+        self.gap = 25
 
     def add_text(self, s):
         text = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=self.font)
-        self.y -= 25
+            self.x, self.y, anchor=SW, font=f"haveltica {self.font_size} bold")
+        self.y -= self.gap
         self.canvas.itemconfigure(text, text=s)
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -60,12 +61,12 @@ class StackObject(Frame):
     def update_stack(self, stack, act):
         for i in range(0, len(stack)):
             if self.stack[i][0] != stack[i]:  # item has changed
-                self.canvas.itemconfigure(self.stack[i][1], text=f"{i}: {self.convert_item(stack[i], self.state)}")
+                self.canvas.itemconfigure(self.stack[i][1], text=f"{i}: {self.convert_item(stack[i])}")
             if i == act:
                 self.highglight_text(self.stack[i][1])
 
     def push_item(self, item):  # add an item to the stack
-        value = self.convert_item(item, self.state)
+        value = self.convert_item(item)
         self.stack.append((item, self.add_text(
                 f"{len(self.stack)}: {value}")))
 
@@ -76,55 +77,63 @@ class StackObject(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         del self.stack[last]
 
+    def clear_stack(self):
+        self.canvas.delete("all")
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.y = self.height
+
     def int_mode(self):
         if self.state == StackObject.State.INT:
             return
-        self.font.config(size=20)
         self.state = StackObject.State.INT
-        for i in range(0, len(self.stack)):
-            self.canvas.itemconfigure(
-                self.stack[i][1], text=f"{i}: {self.stack[i][0].int()}")
+        self.gap = 25
+        self.font_size = 20
+        self.change_existing_items()
 
     def float_mode(self):
         if self.state == StackObject.State.FLOAT:
             return
-        self.font.config(size=20)
         self.state = StackObject.State.FLOAT
-        for i in range(0, len(self.stack)):
-            self.canvas.itemconfigure(
-                self.stack[i][1], text=f"{i}: {self.stack[i][0].float()}")
+        self.gap = 25
+        self.font_size = 20
+        self.change_existing_items()
 
     def char_mode(self):
         if self.state == StackObject.State.CHAR:
             return
-        self.font.config(size=22)
         self.state = StackObject.State.CHAR
-        for i in range(0, len(self.stack)):
-            c = self.stack[i][0].char()
-            self.canvas.itemconfigure(
-                self.stack[i][1], text=f"{i}: {c}")
+        self.gap = 35
+        self.font_size = 30
+        self.change_existing_items()
             
     def bin_mode(self):
         if self.state == StackObject.State.BINARY:
             return
-        self.font.config(size=9)
         self.state = StackObject.State.BINARY
-        for i in range(0, len(self.stack)):
-            c = self.stack[i][0].bin()
-            self.canvas.itemconfigure(
-                self.stack[i][1], text=f"{i}: {c}")
+        self.gap = 12
+        self.font_size = 8
+        self.change_existing_items()
 
     def hex_mode(self):
         if self.state == StackObject.State.HEXADECIMAL:
             return
-        self.font.config(size=18)
         self.state = StackObject.State.HEXADECIMAL
-        for i in range(0, len(self.stack)):
-            c = self.stack[i][0].hex()
-            self.canvas.itemconfigure(
-                self.stack[i][1], text=f"{i}: {c}")
+        self.gap = 25
+        self.font_size = 16
+        self.change_existing_items()
+
+    def change_existing_items(self): 
+        y = self.height
+        for i in range(0, len(self.stack)): 
+            value = self.stack[i][0]
+            text_item = self.stack[i][1]
+            self.canvas.itemconfigure(text_item, text=f"{i}: {self.convert_item(value)}", font=f"haveltica {self.font_size} bold")
+            self.canvas.coords(text_item, self.x, y)
+            y -= self.gap
+        self.y = y
             
-    def convert_item(self, x, type):
+    def convert_item(self, x):
+        type = self.state
         if type == StackObject.State.INT: 
             return x.int() 
         elif type == StackObject.State.FLOAT: 
