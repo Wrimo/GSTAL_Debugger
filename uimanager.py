@@ -22,7 +22,7 @@ class View:
         self.act_label.write(act)
         self.pc_label.write(pc)
         self.editor.highlight_line(pc + 1)
-        self.editor.see(float(pc + 15))
+        self.editor.text.see(float(pc + 15))
         self.stack.update_stack(stack, act)
 
     def add_to_stack(self, item):
@@ -50,9 +50,16 @@ class View:
     def get_terminal(self):
         val = self.terminal.get_entry()
         return val
+    
+    def line_is_breakpoint(self, line) -> bool: 
+        return self.editor.linenumbers.breakpoints[line]
 
     def clear_highlight(self):
         self.editor.clear_highlight()
+
+    def program_end(self): 
+        self.play_button.config(image=self.play_image)
+        self.clear_highlight()
 
     def stack_int(self): 
         self.stack.int_mode()

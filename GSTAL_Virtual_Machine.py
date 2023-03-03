@@ -48,7 +48,7 @@ class GSTALVM:
         return self._tos+1
     
     def finished_execution(self):
-        return self._pc >= self._inst_count or self._stopped
+        return self._pc >= self._inst_count or self._pc < 0 or not self._running
 
     def runError(self):    
         self.view.write_terminal("ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
@@ -69,13 +69,12 @@ class GSTALVM:
         for i in range (0, x):
             self.pop()
         self._pc = 0    
-        self._stopped = False
         return    
 
     def stop(self):
+        self._running = False
         self._pc = -1
-        self._stopped = True
-        self.view.clear_highlight()
+        self.view.program_end()
         return
 
     def full_reset(self): # resets code and data memory 
@@ -88,9 +87,9 @@ class GSTALVM:
         self._pc = 0
         self._act = 0
         self._inst_count = 0
-        self._stopped = False
         self._dataMem = []
         self._codeMem = []
+        self._running = False
 
     def load(self, file):   #add flag, check operand is valid 
         self.full_reset()
@@ -159,8 +158,10 @@ class GSTALVM:
             
     def execute(self):   
         if(self._pc < 0 or self._pc >= self._inst_count):
+            print(self._pc, "inst", self._inst_count)
             return
             
+        self._running = True
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
         instr = "self."+opcode+"("
@@ -179,9 +180,11 @@ class GSTALVM:
 
     def run(self):
         self.execute()
-        if not self.finished_execution():
+        finished = self.finished_execution() 
+        if not finished and not self.view.line_is_breakpoint(self._pc):
             self.view.wait(self.run)
-        else: 
+        elif finished: 
+            self.view.program_end()
             self.view.clear_highlight()
 
     def step_run(self):

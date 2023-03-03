@@ -7,6 +7,7 @@
 # tkinter.
 # -------------------------------------------------------------------
 
+from collections import defaultdict
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -16,6 +17,8 @@ from tkinter.scrolledtext import ScrolledText
 from enum import Enum
 
 # Adds text at the bottom, expanding upwards. Useful for visualisation of stack.
+
+
 class StackObject(Frame):
     class State(Enum):
         INT = 0
@@ -61,19 +64,20 @@ class StackObject(Frame):
     def update_stack(self, stack, act):
         for i in range(0, len(stack)):
             if self.stack[i][0] != stack[i]:  # item has changed
-                self.canvas.itemconfigure(self.stack[i][1], text=f"{i}: {self.convert_item(stack[i])}")
+                self.canvas.itemconfigure(
+                    self.stack[i][1], text=f"{i}: {self.convert_item(stack[i])}")
             if i == act:
                 self.highglight_text(self.stack[i][1])
 
     def push_item(self, item):  # add an item to the stack
         value = self.convert_item(item)
         self.stack.append((item, self.add_text(
-                f"{len(self.stack)}: {value}")))
+            f"{len(self.stack)}: {value}")))
 
     def pop_item(self):  # remove last item from the stack
         last = len(self.stack) - 1
         self.canvas.delete(self.stack[last][1])
-        self.y += 25
+        self.y += self.gap
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         del self.stack[last]
 
@@ -102,10 +106,10 @@ class StackObject(Frame):
         if self.state == StackObject.State.CHAR:
             return
         self.state = StackObject.State.CHAR
-        self.gap = 35
-        self.font_size = 30
+        self.gap = 30
+        self.font_size = 25
         self.change_existing_items()
-            
+
     def bin_mode(self):
         if self.state == StackObject.State.BINARY:
             return
@@ -122,22 +126,24 @@ class StackObject(Frame):
         self.font_size = 16
         self.change_existing_items()
 
-    def change_existing_items(self): 
+    def change_existing_items(self):
         y = self.height
-        for i in range(0, len(self.stack)): 
+        for i in range(0, len(self.stack)):
             value = self.stack[i][0]
             text_item = self.stack[i][1]
-            self.canvas.itemconfigure(text_item, text=f"{i}: {self.convert_item(value)}", font=f"haveltica {self.font_size} bold")
+            self.canvas.itemconfigure(
+                text_item, text=f"{i}: {self.convert_item(value)}", font=f"haveltica {self.font_size} bold")
             self.canvas.coords(text_item, self.x, y)
             y -= self.gap
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.y = y
-            
+        
     def convert_item(self, x):
         type = self.state
-        if type == StackObject.State.INT: 
-            return x.int() 
-        elif type == StackObject.State.FLOAT: 
-            return x.float() 
+        if type == StackObject.State.INT:
+            return x.int()
+        elif type == StackObject.State.FLOAT:
+            return x.float()
         elif type == StackObject.State.CHAR:
             return x.char()
         elif type == StackObject.State.BINARY:
@@ -146,7 +152,7 @@ class StackObject(Frame):
             return x.hex()
 
 
-# allows for outputing of text and textbox entry 
+# allows for outputing of text and textbox entry
 class TerminalObject(Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
@@ -206,6 +212,8 @@ class TerminalObject(Frame):
         self.create_text()
 
 # simple wrapper for labels, used to display register values
+
+
 class RegisterObject(Label):
     def __init__(self, *args, **kwargs):
         Label.__init__(self, *args, **kwargs)
@@ -214,19 +222,110 @@ class RegisterObject(Label):
     def write(self, val):
         self.configure(text=f"{self.text} {val}")
 
-# editor object to allow for showing line number and break points
-class EditorObject(ScrolledText):
+# custom widget for the editor box. allows for line numbers and breakpoint selection
+
+
+class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-adding-line-number-to-text-widget
     def __init__(self, *args, **kwargs):
-        ScrolledText.__init__(self, *args, **kwargs)
-        self.line = 0
+        tk.Frame.__init__(self, *args, **kwargs)
+        self.text = EditorBox.CustomText(self, width=40, height=40)
+        self.vsb = tk.Scrollbar(self, orient="vertical",
+                                command=self.text.yview)
+        self.text.configure(yscrollcommand=self.vsb.set)
+        self.text.tag_configure("step", background="red")
+        self.linenumbers = EditorBox.TextLineNumbers(self, width=50)
+        self.linenumbers.attach(self.text)
+
+        self.vsb.pack(side="right", fill="y")
+        self.linenumbers.pack(side="left", fill="y")
+        self.text.pack(side="right", fill="both", expand=True)
+
+        self.text.bind("<<Change>>", self._on_change)
+        self.text.bind("<Configure>", self._on_change)
+
+        self.line = 0 # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order
+
+    def _on_change(self, event):
+        self.linenumbers.redraw()
+
+    def get(self): 
+        return self.text.get(1.0, END)
+    def clear(self):
+        self.text.delete(1.0, END)
+
+    def insert(self, text):
+        self.text.insert(1.0, text)
 
     def highlight_line(self, line):
-        self.remove_highlight(self.line)
-        self.tag_add("step", float(line), f"{float(line)} lineend")
+        self.clear_highlight()
+        self.text.tag_add("step", float(line), f"{float(line)} lineend")
         self.line = line
 
     def clear_highlight(self):
-        self.remove_highlight(self.line)
+        self.text.tag_remove("step", float(self.line), f"{float(self.line)} lineend")
 
-    def remove_highlight(self, line):
-        self.tag_remove("step", float(line), f"{float(line)} lineend")
+    class CustomText(tk.Text):
+        def __init__(self, *args, **kwargs):
+            tk.Text.__init__(self, *args, **kwargs)
+
+            # create a proxy for the underlying widget
+            self._orig = self._w + "_orig"
+            self.tk.call("rename", self._w, self._orig)
+            self.tk.createcommand(self._w, self._proxy)
+
+        def _proxy(self, *args):
+            # let the actual widget perform the requested action
+            cmd = (self._orig,) + args
+            result = self.tk.call(cmd)
+
+            # generate an event if something was added or deleted,
+            # or the cursor position changed
+            if (args[0] in ("insert", "replace", "delete", "see") or
+                    args[0:3] == ("mark", "set", "insert") or
+                    args[0:2] == ("xview", "moveto") or
+                    args[0:2] == ("xview", "scroll") or
+                    args[0:2] == ("yview", "moveto") or
+                    args[0:2] == ("yview", "scroll")
+                ):
+                self.event_generate("<<Change>>", when="tail")
+
+            # return what the actual widget returned
+            return result
+
+    class TextLineNumbers(tk.Canvas):
+        def __init__(self, *args, **kwargs):
+            tk.Canvas.__init__(self, *args, **kwargs)
+            self.textwidget = None
+
+        def attach(self, text_widget):
+            self.textwidget = text_widget
+            self.breakpoints = defaultdict(bool)
+
+        def redraw(self, *args):
+            '''redraw line numbers'''
+            self.delete("all")
+
+            i = self.textwidget.index("@0,0")
+            while True:
+                dline = self.textwidget.dlineinfo(i)
+                if dline is None:
+                    break
+                y = dline[1]
+                linenum = str(i).split(".")[0]
+                linenum = int(linenum) - 1
+
+                self.create_text(18, y, anchor="nw", text=linenum)
+
+                if self.breakpoints[linenum]:
+                    rect = self.create_rectangle(
+                        6, y + 2, 6 + 10, y + 2 + 10, fill="red", activefill="red")
+                else:
+                    rect = self.create_rectangle(
+                        6, y + 2, 6 + 10, y + 2 + 10, fill="#a5a5a5", activefill="red")
+                self.tag_bind(rect, '<ButtonPress-1>',
+                              lambda x,  linenum = linenum: self.breakpoint_click(linenum))
+                i = self.textwidget.index("%s+1line" % i)
+
+        def breakpoint_click(self, line):
+            self.breakpoints[line] = not self.breakpoints[line]
+            self.redraw()

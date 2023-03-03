@@ -28,8 +28,8 @@ def open_file(event=None):
     with open(path, "r") as file:
         code = file.read()
         vm.load(os.path.basename(file_path))
-        editor.delete(1.0, END)
-        editor.insert(1.0, code)
+        editor.clear()
+        editor.insert(code)
 
     file_name = os.path.basename(file_path)
     v.terminal.clear()
@@ -39,8 +39,8 @@ def new_file(event=None):
     global file_path
     file_path = ""
     vm.full_reset()
-    editor.delete(1.0, END)
-    editor.insert(END, "NOP ;GSTAL Debugger")
+    editor.clear()
+    editor.insert("NOP ;WELCOME TO THE BC GSTAL Debugger")
 
 
 def save_file(event=None):
@@ -52,7 +52,7 @@ def save_file(event=None):
     else:
         save_path = file_path
     with open(save_path, "w") as file:
-        code = editor.get(1.0, END)
+        code = editor.get()
         file.write(code)
 
     file_name = os.path.basename(file_path)
@@ -65,7 +65,7 @@ def save_as(event=None):
     save_path = asksaveasfilename()
     file_path = save_path
     with open(save_path, "w") as file:
-        code = editor.get(1.0, END)
+        code = editor.get()
         file.write(code)
 
     vm.load(os.path.basename(file_path))
@@ -78,24 +78,26 @@ def close(event=None):
 def run(event=None):
     global file_name
     v.reset()
-    # start_program()
+    play_button.config(image=stop_img)
     vm.stack_reset()
     vm.run()
 
 
 def stop(event=None):
-    stop_program()
+    play_button.config(image=play_img)
+    vm.stop()
 
 
 def step_run(event=None):
+    print(vm.finished_execution())
     if vm.finished_execution():
-        vm.full_reset()
-        v.new_line_terminal()
+        vm.stack_reset()
+        v.reset()
     vm.execute()
 
 
 def run_end(event=None):
-    vm.editor.clear_highlight()
+    v.editor.clear_highlight()
     vm.run()
 
 
@@ -103,10 +105,13 @@ def slider_change(event):
     v.delay = int(speed_slider.get() * 1000)
 
 def run_button():
-    if vm._pc > 0:
-        stop_program()
+    print(vm.finished_execution())
+    if not vm.finished_execution():
+        vm.stop()
+        play_button.config(image=play_img)
     else:
-        start_program()
+        run()
+        play_button.config(image=stop_img)
     return
 
 
@@ -123,24 +128,6 @@ def on_exit():
     root.destroy()
     exit()
 
-
-def start_program():
-    # global is_running
-    # if not is_running:
-    img = tk.PhotoImage(file="Assets/stop-button.png")
-    play_button.config(image=img)
-    # is_running = True
-    vm.full_reset()
-    vm.run()
-
-
-def stop_program():
-    # global is_running
-    # if is_running:
-    is_running = False
-    img = tk.PhotoImage(file="Assets/play.png")
-    play_button.config(image=img)
-    vm.full_reset()
 
 
 root = Tk()
@@ -163,12 +150,6 @@ root.bind("<Control-s>", save_file)
 root.bind("<Control-S>", save_as)
 root.bind("<Control-q>", close)
 
-
-# img = tk.PhotoImage(file="Assets/play.png")
-# play_button = tk.Button(root, image=img, command=run_button, compound=CENTER)
-# play_button.grid(column=0, row=0)
-
-
 control_frame = Frame(root, width=400, height=10)
 control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW)
 
@@ -184,45 +165,35 @@ output_frame.grid(column=1, row=1, sticky=NSEW)
 stack_reg_frame = Frame(root, width=400, height=400)
 stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
 
-stack_frame = Frame(stack_reg_frame, width=200, height=400)
+stack_frame = Frame(stack_reg_frame, width=350, height=400)
 stack_frame.grid(column=0, row=0, sticky=NSEW)
 
-reg_frame = Frame(stack_reg_frame, bg="grey", width=200, height=400)
+reg_frame = Frame(stack_reg_frame, bg="grey", width=50, height=400)
 reg_frame.grid(column=1, row=0, sticky=NSEW)
 
 stack_reg_frame.grid_columnconfigure(1, weight=1)
 
 # control bar 
+play_img = tk.PhotoImage(file="Assets/play.png")
+stop_img = tk.PhotoImage(file="Assets/stop-button.png")
+play_button = tk.Button(control_frame, image=play_img, command=run_button, compound=CENTER)
+play_button.grid(column=0, row=0)
+
+arrow_img =  tk.PhotoImage(file="Assets/right-arrow.png")
+step_button = tk.Button(control_frame, image=arrow_img, command=step_run, compound=CENTER)
+step_button.grid(column=1, row=0)
+
 speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
-speed_label.grid(column=0, row=0, sticky=E)
+speed_label.grid(column=2, row=0)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
-speed_slider.grid(column=1, row=0, padx=5)
+speed_slider.grid(column=3, row=0)
 
 
-stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
-stack_buttons.grid(column=0, row=1)
-
-int_button = Button(stack_buttons, text="INT", command=v.stack_int)
-int_button.grid(column=2, row=0)
-
-float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
-float_button.grid(column=3, row=0)
-
-char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
-char_button.grid(column=4, row=0)
-
-bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
-bin_button.grid(column=5, row=0)
-
-hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
-hex_button.grid(column=6, row=0)
 
 # editor
-editor = EditorObject(editor_frame, font=("haveltica 9 bold"),
-                      wrap="none", width=45, height=45)
+editor = EditorBox(editor_frame, width=30, height=90)
 editor.grid(column=0, row=0, sticky=NSEW)
-editor.tag_configure("step", background="red")
 
 # output
 output = TerminalObject(output_frame, width=550, height=350)
@@ -233,15 +204,34 @@ output.grid(column=0, row=0, sticky=NSEW)
 stack = StackObject(stack_frame, width=370, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
+stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
+stack_buttons.grid(column=0, row=1, sticky=EW, padx=2)
+
+int_button = Button(stack_buttons, text="INT", command=v.stack_int)
+int_button.grid(column=2, row=0, padx=15)
+
+float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
+float_button.grid(column=3, row=0, padx=15)
+
+char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
+char_button.grid(column=4, row=0, padx=15)
+
+# bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
+# bin_button.grid(column=5, row=0, padx=5)
+
+hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
+hex_button.grid(column=6, row=0, padx=15)
+
+
 tos_label = RegisterObject(reg_frame, bg="grey", text="tos",
-                  font=("haveltica 26 bold"))
-tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=NSEW)
-pc_label = RegisterObject(reg_frame, bg="grey", text="pc", font=("haveltica 26 bold"))
-pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=NSEW)
+                  font=("haveltica 26"))
+tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=W)
+pc_label = RegisterObject(reg_frame, bg="grey", text="pc", font=("haveltica 26"))
+pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=W)
 
 act_label = RegisterObject(reg_frame, bg="grey", text="act",
-                  font=("haveltica 26 bold"))
-act_label.grid(column=0, row=2, pady=30, padx=15, sticky=NSEW)
+                  font=("haveltica 26"))
+act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
 
 
 
@@ -279,6 +269,8 @@ v.stack = stack
 v.act_label = act_label
 v.pc_label = pc_label
 v.tos_label = tos_label
+v.play_button = play_button
+v.play_image = play_img
 v.root = root
 
 vm.view = v
