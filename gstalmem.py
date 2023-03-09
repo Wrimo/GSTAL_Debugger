@@ -35,7 +35,7 @@ class DataCell:
         return value
     
     def bin(self): 
-        return bin(int.from_bytes(self._content, byteorder=sys.byteorder))[2:]
+        return bin(int.from_bytes(self._content, byteorder=sys.byteorder))[2:] # 2: to get all of the bits and not the starting 0b 
 
     def hex(self): 
         return self._content.hex()

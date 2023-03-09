@@ -23,16 +23,17 @@ from custom_ui import *
 def open_file(event=None):
     global file_path
     global file_name
+    stop()
     path = askopenfilename()
     file_path = path
-    with open(path, "r") as file:
-        code = file.read()
-        vm.load(os.path.basename(file_path))
-        editor.clear()
-        editor.insert(code)
-
-    file_name = os.path.basename(file_path)
-    v.terminal.clear()
+    try:
+        with open(path, "r") as file:
+            code = file.read()
+            editor.clear()
+            editor.insert(code)
+        file_name = os.path.basename(file_path)
+    except:
+        v.write_terminal("An error occurred opening the file")
 
 
 def new_file(event=None):
@@ -55,9 +56,7 @@ def save_file(event=None):
         code = editor.get()
         file.write(code)
 
-    file_name = os.path.basename(file_path)
-    # will need to change this to let the debugger work with files not in the same directory
-    vm.load(file_name)
+    file_name = os.path.basename(file_path) # will need to change this to let the debugger work with files not in the same directory
 
 
 def save_as(event=None):
@@ -76,10 +75,7 @@ def close(event=None):
 
 
 def run(event=None):
-    global file_name
-    v.reset()
-    play_button.config(image=stop_img)
-    vm.stack_reset()
+    config_start()
     vm.run()
 
 
@@ -89,36 +85,41 @@ def stop(event=None):
 
 
 def step_run(event=None):
-    print(vm.finished_execution())
     if vm.finished_execution():
-        vm.stack_reset()
-        v.reset()
+        config_start()
     vm.execute()
 
 
 def run_end(event=None):
-    v.editor.clear_highlight()
+    if vm.finished_execution():
+        vm.stack_reset()
+        play_button.config(image=stop_img)
     vm.run()
 
 
 def slider_change(event):
     v.delay = int(speed_slider.get() * 1000)
 
+
 def run_button():
-    print(vm.finished_execution())
     if not vm.finished_execution():
         vm.stop()
-        play_button.config(image=play_img)
     else:
         run()
-        play_button.config(image=stop_img)
     return
 
 
 def exit(event=None):
     on_exit()
-    
+
+
 # HELPER FUNCTIONS
+def config_start():
+    v.reset()
+    vm.stack_reset()
+    vm.load(os.path.basename(file_path))
+    play_button.config(image=stop_img)
+
 def enter_pressed(event):
     v.input_done()
 
@@ -127,7 +128,6 @@ def on_exit():
     vm.entered.set(vm.entered.get())
     root.destroy()
     exit()
-
 
 
 root = Tk()
@@ -173,22 +173,30 @@ reg_frame.grid(column=1, row=0, sticky=NSEW)
 
 stack_reg_frame.grid_columnconfigure(1, weight=1)
 
-# control bar 
+# control bar
 play_img = tk.PhotoImage(file="Assets/play.png")
 stop_img = tk.PhotoImage(file="Assets/stop-button.png")
-play_button = tk.Button(control_frame, image=play_img, command=run_button, compound=CENTER)
+play_button = tk.Button(control_frame, image=play_img,
+                        command=run_button, compound=CENTER)
 play_button.grid(column=0, row=0)
 
-arrow_img =  tk.PhotoImage(file="Assets/right-arrow.png")
-step_button = tk.Button(control_frame, image=arrow_img, command=step_run, compound=CENTER)
-step_button.grid(column=1, row=0)
+fastforward_img = tk.PhotoImage(file="Assets/fast-forward.png")
+runend_button = tk.Button(
+    control_frame, image=fastforward_img, command=run_end, compound=CENTER)
+runend_button.grid(column=1, row=0)
+
+
+arrow_img = tk.PhotoImage(file="Assets/right-arrow.png")
+step_button = tk.Button(control_frame, image=arrow_img,
+                        command=step_run, compound=CENTER)
+step_button.grid(column=2, row=0)
 
 speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
-speed_label.grid(column=2, row=0)
+speed_label.grid(column=3, row=0)
 
-speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
-speed_slider.grid(column=3, row=0)
-
+speed_slider = ttk.Scale(control_frame, from_=1, to=0,
+                         orient="horizontal", command=slider_change)
+speed_slider.grid(column=4, row=0)
 
 
 # editor
@@ -200,7 +208,7 @@ output = TerminalObject(output_frame, width=550, height=350)
 output.grid(column=0, row=0, sticky=NSEW)
 
 
-# stack and register view 
+# stack and register view
 stack = StackObject(stack_frame, width=370, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
@@ -224,15 +232,15 @@ hex_button.grid(column=6, row=0, padx=15)
 
 
 tos_label = RegisterObject(reg_frame, bg="grey", text="tos",
-                  font=("haveltica 26"))
+                           font=("haveltica 26"))
 tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=W)
-pc_label = RegisterObject(reg_frame, bg="grey", text="pc", font=("haveltica 26"))
+pc_label = RegisterObject(reg_frame, bg="grey",
+                          text="pc", font=("haveltica 26"))
 pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=W)
 
 act_label = RegisterObject(reg_frame, bg="grey", text="act",
-                  font=("haveltica 26"))
+                           font=("haveltica 26"))
 act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
-
 
 
 file_menu = Menu(menu, tearoff=0)
@@ -241,6 +249,8 @@ run_menu = Menu(menu, tearoff=0)
 options_menu = Menu(menu, tearoff=0)
 
 
+v.fast_mode = BooleanVar()
+v.fast_mode.set(False)
 menu.add_cascade(label="File", menu=file_menu)
 menu.add_cascade(label="Edit", menu=edit_menu)
 menu.add_cascade(label="Run", menu=run_menu)
@@ -258,6 +268,7 @@ run_menu.add_command(label="Stop", command=stop)
 run_menu.add_separator()
 run_menu.add_command(label="Step run", command=step_run)
 run_menu.add_command(label="Run to end", command=run_end)
+options_menu.add_checkbutton(label="Fast Mode", variable=v.fast_mode, onvalue=True, offvalue=False)
 
 
 root.bind("<Return>", enter_pressed)

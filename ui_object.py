@@ -27,6 +27,28 @@ class StackObject(Frame):
         BINARY = 3
         HEXADECIMAL = 4
 
+    class StackItem:
+        def __init__(self, canvas, index, value, coord, font_size):
+            self.background = canvas.create_rectangle(coord[0] - 50, coord[1] - 15, coord[0] + 350,  coord[1] + 25, fill="#484848")
+            self.in_text = canvas.create_text(2, coord[1] + 25, anchor=SW, font=f"haveltica 20 bold")
+            canvas.itemconfig(self.in_text, text=f"{index}")
+            self.value_text = canvas.create_text(80, coord[1] + 25, anchor=SW, font=f"haveltica {font_size} bold")
+            self.line = canvas.create_line(60, coord[1] + 25, 60, coord[1] - 15)
+            canvas.itemconfig(self.value_text, text=f"{value}")
+            self.canvas = canvas
+
+        def update_value(self, value, font_size):
+            self.canvas.itemconfig(self.value_text, font=f"haveltica {font_size} bold", text=f"{value}")
+
+        def __del__(self):
+            try:
+                self.canvas.delete(self.background)
+                self.canvas.delete(self.in_text)
+                self.canvas.delete(self.value_text)
+                self.canvas.delete(self.line)
+            except:
+                pass  # the only issue here occurs when the program is being exited and the destruction of root destroyed these widgets before this code runs.f
+
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
         self.canvas = Canvas(
@@ -45,23 +67,26 @@ class StackObject(Frame):
         self.stack = []
         self.state = StackObject.State.INT
         self.font_size = 20
-        self.gap = 25
+        self.gap = 40
 
-    def add_text(self, s):
-        text = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=f"haveltica {self.font_size} bold")
+    def add_text(self, value):
+        item = StackObject.StackItem(self.canvas, len(self.stack), value, (self.x, self.y), self.font_size)
         self.y -= self.gap
-        self.canvas.itemconfigure(text, text=s)
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         if self.y < 0:
             self.canvas.yview_moveto('0.0')
-        return text
+        return item
 
     def highglight_text(self, text):
         self.canvas.itemconfigure(text, fill="red")
 
     def update_stack(self, stack, act):
+        if len(self.stack) == 0:  # needed for the case when fast mode is active, so the stack is empty and many things must be added
+            for i in range(0, len(stack)):
+                self.push_item(stack[i])
+            return
+
         for i in range(0, len(stack)):
             if self.stack[i][0] != stack[i]:  # item has changed
                 self.canvas.itemconfigure(
@@ -71,13 +96,13 @@ class StackObject(Frame):
 
     def push_item(self, item):  # add an item to the stack
         value = self.convert_item(item)
-        self.stack.append((item, self.add_text(
-            f"{len(self.stack)}: {value}")))
+        slot = self.add_text(value)
+        self.stack.append((item, slot))
 
     def pop_item(self):  # remove last item from the stack
         last = len(self.stack) - 1
-        self.canvas.delete(self.stack[last][1])
         self.y += self.gap
+        self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         del self.stack[last]
 
@@ -85,12 +110,12 @@ class StackObject(Frame):
         self.canvas.delete("all")
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.y = self.height
+        self.stack = []
 
     def int_mode(self):
         if self.state == StackObject.State.INT:
             return
         self.state = StackObject.State.INT
-        self.gap = 25
         self.font_size = 20
         self.change_existing_items()
 
@@ -98,7 +123,6 @@ class StackObject(Frame):
         if self.state == StackObject.State.FLOAT:
             return
         self.state = StackObject.State.FLOAT
-        self.gap = 25
         self.font_size = 20
         self.change_existing_items()
 
@@ -106,15 +130,13 @@ class StackObject(Frame):
         if self.state == StackObject.State.CHAR:
             return
         self.state = StackObject.State.CHAR
-        self.gap = 30
         self.font_size = 25
         self.change_existing_items()
 
-    def bin_mode(self):
+    def bin_mode(self):  # not available in the editor
         if self.state == StackObject.State.BINARY:
             return
         self.state = StackObject.State.BINARY
-        self.gap = 12
         self.font_size = 8
         self.change_existing_items()
 
@@ -122,7 +144,6 @@ class StackObject(Frame):
         if self.state == StackObject.State.HEXADECIMAL:
             return
         self.state = StackObject.State.HEXADECIMAL
-        self.gap = 25
         self.font_size = 16
         self.change_existing_items()
 
@@ -131,13 +152,8 @@ class StackObject(Frame):
         for i in range(0, len(self.stack)):
             value = self.stack[i][0]
             text_item = self.stack[i][1]
-            self.canvas.itemconfigure(
-                text_item, text=f"{i}: {self.convert_item(value)}", font=f"haveltica {self.font_size} bold")
-            self.canvas.coords(text_item, self.x, y)
-            y -= self.gap
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.y = y
-        
+            text_item.update_value(self.convert_item(value), self.font_size)
+
     def convert_item(self, x):
         type = self.state
         if type == StackObject.State.INT:
@@ -243,13 +259,14 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         self.text.bind("<<Change>>", self._on_change)
         self.text.bind("<Configure>", self._on_change)
 
-        self.line = 0 # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order
+        self.line = 0  # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order
 
     def _on_change(self, event):
         self.linenumbers.redraw()
 
-    def get(self): 
+    def get(self):
         return self.text.get(1.0, END)
+
     def clear(self):
         self.text.delete(1.0, END)
 
@@ -262,7 +279,8 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         self.line = line
 
     def clear_highlight(self):
-        self.text.tag_remove("step", float(self.line), f"{float(self.line)} lineend")
+        self.text.tag_remove("step", float(self.line),
+                             f"{float(self.line)} lineend")
 
     class CustomText(tk.Text):
         def __init__(self, *args, **kwargs):
@@ -281,11 +299,11 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
             # generate an event if something was added or deleted,
             # or the cursor position changed
             if (args[0] in ("insert", "replace", "delete", "see") or
-                    args[0:3] == ("mark", "set", "insert") or
-                    args[0:2] == ("xview", "moveto") or
-                    args[0:2] == ("xview", "scroll") or
-                    args[0:2] == ("yview", "moveto") or
-                    args[0:2] == ("yview", "scroll")
+                args[0:3] == ("mark", "set", "insert") or
+                args[0:2] == ("xview", "moveto") or
+                args[0:2] == ("xview", "scroll") or
+                args[0:2] == ("yview", "moveto") or
+                args[0:2] == ("yview", "scroll")
                 ):
                 self.event_generate("<<Change>>", when="tail")
 
@@ -314,16 +332,16 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
                 linenum = str(i).split(".")[0]
                 linenum = int(linenum) - 1
 
-                self.create_text(18, y, anchor="nw", text=linenum)
+                self.create_text(18, y, anchor=NW, text=linenum)
 
                 if self.breakpoints[linenum]:
                     rect = self.create_rectangle(
-                        6, y + 2, 6 + 10, y + 2 + 10, fill="red", activefill="red")
+                        6, y + 2, 6 + 10, y + 2 + 10, width=0, fill="#db0000")
                 else:
                     rect = self.create_rectangle(
-                        6, y + 2, 6 + 10, y + 2 + 10, fill="#a5a5a5", activefill="red")
+                        6, y + 2, 6 + 10, y + 2 + 10, width=0, fill="", activefill="#ff3737")
                 self.tag_bind(rect, '<ButtonPress-1>',
-                              lambda x,  linenum = linenum: self.breakpoint_click(linenum))
+                              lambda x,  linenum=linenum: self.breakpoint_click(linenum))
                 i = self.textwidget.index("%s+1line" % i)
 
         def breakpoint_click(self, line):

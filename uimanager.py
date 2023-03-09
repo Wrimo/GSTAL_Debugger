@@ -16,7 +16,7 @@ from ui_object import *
 
 class View:
     def update(self, stack, tos, act, pc):
-        if self.delay == 0:
+        if self.fast_mode.get() and not self.line_is_breakpoint(pc): 
             return
         self.tos_label.write(tos)
         self.act_label.write(act)
@@ -26,9 +26,13 @@ class View:
         self.stack.update_stack(stack, act)
 
     def add_to_stack(self, item):
+        if self.fast_mode.get(): 
+            return
         self.stack.push_item(item)
 
     def remove_from_stack(self):
+        if self.fast_mode.get(): 
+            return
         self.stack.pop_item()
 
     def reset(self): 
@@ -36,7 +40,10 @@ class View:
         self.editor.clear_highlight()
 
     def wait(self, call_back):
-        self.root.after(self.delay, call_back)
+        if(self.fast_mode.get()):
+            self.root.after(0, call_back)
+        else:
+            self.root.after(self.delay, call_back)
 
     def new_line_terminal(self):
         self.terminal.create_text()

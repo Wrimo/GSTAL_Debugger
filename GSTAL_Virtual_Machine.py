@@ -32,17 +32,11 @@ class GSTALVM:
 
     def pop(self):                
         if(len(self._dataMem) < 1): #stackunderflow error            
-            return self.runError()
+            return self.runError("stack underflow")
         else:         
             self._tos -= 1
             self.view.remove_from_stack()
             return self._dataMem.pop() 
-
-    def peek(self):
-        if(len(self._dataMem) < 1): #stackunderflow error            
-            return self.runError()
-        else:         
-            return self._dataMem[self._tos]
 
     def size(self):
         return self._tos+1
@@ -50,25 +44,17 @@ class GSTALVM:
     def finished_execution(self):
         return self._pc >= self._inst_count or self._pc < 0 or not self._running
 
-    def runError(self):    
-        self.view.write_terminal("ERROR: GOOD LUCK IN THE COMPUTER APOCALYPSE") #eventually change this to an argument error (i.e. Error: Stack Underflow or Error: Divide by zero or Error: 
-        parser = argparse.ArgumentParser() #read command line check for -d 
-        parser.add_argument('-d', '--stackdump') #creates argument stackdump 
-        stackdump=True
-        if stackdump == True:  
-            file= open("stackdump.txt","w+")
-            x = len(self._dataMem)
-            for i in range(0, x):
-                file.write(str(self.pop()))
-            file.close()
-            self.stop()
-        return sys.exit()                            
+    def runError(self, error="unknown"):    
+        self.view.write_terminal(f"ERROR: {error}") 
+        self.view.new_line_terminal()
+        self.stop()                
 
     def stack_reset(self): #stackDump 
         x = len(self._dataMem)
         for i in range (0, x):
             self.pop()
         self._pc = 0    
+        self._executing = False
         return    
 
     def stop(self):
@@ -90,10 +76,10 @@ class GSTALVM:
         self._dataMem = []
         self._codeMem = []
         self._running = False
+        self._executing = False # is currently executing an instruciton, needed to keep user from spamming step run on an INI instruction
 
     def load(self, file):   #add flag, check operand is valid 
         self.full_reset()
-
         _dictionary = { "ADI":(1,None),  "SBI":(2,None),  "MLI":(3,None),
                         "DVI":(4,None),  "NGI":(5,None),
                         
@@ -128,7 +114,7 @@ class GSTALVM:
             f = open(f)
         except Exception: 
             flag=True
-            self.view.write_terminal("Error: File name not valid")
+            self.runError("file name not valid")
     
         for line in f:
             line=line.upper()
@@ -141,7 +127,8 @@ class GSTALVM:
                 allPiece.append(tuple(instr))
                 allInstr.append(instr[0])
             else:
-                self.view.write_terminal("error")
+                text = " ".join(instr)
+                self.runError(f"bad instruction {text}")
 #check it
         i = 0
         while i < len(allInstr):
@@ -150,17 +137,16 @@ class GSTALVM:
                 self._codeMem = allPiece
             else:
                 flag = True
-                self.view.write_terminal(f"This instruction is not in the GSTAL dictionary: {opcode}")
+                self.runError(f"This instruction is not in the GSTAL dictionary: {opcode}")
             i = i+1    
         self._inst_count = len(self._codeMem)
         return flag
             
             
     def execute(self):   
-        if(self._pc < 0 or self._pc >= self._inst_count):
-            print(self._pc, "inst", self._inst_count)
+        if(self._pc < 0 or self._pc >= self._inst_count or self._executing):
             return
-            
+        self._executing = True
         self._running = True
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
@@ -169,6 +155,7 @@ class GSTALVM:
             instr = instr + str(operand)
         instr = instr + ")"
         exec(instr)  
+        self._executing = False
         # update UI components. 
         self.view.update(self._dataMem, self._tos, self._act, self._pc)      
         return    
@@ -181,25 +168,17 @@ class GSTALVM:
     def run(self):
         self.execute()
         finished = self.finished_execution() 
-        if not finished and not self.view.line_is_breakpoint(self._pc):
-            self.view.wait(self.run)
+        if not finished and not self.view.line_is_breakpoint(self._pc):  
+                self.view.wait(self.run)
         elif finished: 
             self.view.program_end()
             self.view.clear_highlight()
 
     def step_run(self):
         self.execute()
-        return 
-    
-    def doit(self, opcode, operand=None):
-        instr = "self."+opcode+"("
-        if operand != None:
-            instr = instr + str(operand)
-        instr = instr + ")"
-        exec(instr)
-        return        
+        return    
         
-    def ADD(self): #only here for debug purposes 
+    def ADD(self): #only here for debug purposes (legacy instruction)
         self.ADI()    
         
 #INTEGER ARTHMETIC                                 
@@ -227,8 +206,8 @@ class GSTALVM:
     def DVI(self):                 
         y = self.pop().int()
         x = self.pop().int()
-        if(x==0):
-            self.runError()
+        if(y==0):
+            self.runError("divide by zero")
         else:    
             self.push(DataCell(x // y))
             self._pc = self._pc + 1
@@ -265,8 +244,8 @@ class GSTALVM:
     def DVF(self):
         y = self.pop().float()
         x = self.pop().float()
-        if(x==0):
-            self.runError()
+        if(y==0):
+            self.runError("divide by zero")
         else:    
             self.push(DataCell(x // y))
             self._pc = self._pc + 1    
@@ -426,7 +405,7 @@ class GSTALVM:
         if(len(self._dataMem) > a.int()):
             self._dataMem[a.int()] = b
         else: 
-            self.runError()
+            self.runError("bad address for STO")
         return
 
 #Input Output    
@@ -487,14 +466,14 @@ class GSTALVM:
     
     def JMP(self, x):
         if(x >=self._inst_count):
-            self.runError()
+            self.runError("bad jump address")
         else: 
             self._pc = x
         return
     
     def JPF(self, x):   
         if(x >=self._inst_count):
-            self.runError()
+            self.runError("bad jump address")
         else:         
             a = self.pop()
             if(a.int()==0):
@@ -510,7 +489,7 @@ class GSTALVM:
     
     def CAL(self, x): #check line jmp too again and if not exist RUNTIME ERROR WOOOOOOOOOOOOOOOT
         if(len(self._dataMem) >= x):
-            self.runError()
+            self.runError("bad call address")
         else:         
             self.push(DataCell(self._act))
             self._act = self._tos
@@ -520,11 +499,11 @@ class GSTALVM:
     
     def RET(self): 
         if(self._dataMem[self._act + 1].int() + 1 >= self._inst_count):
-            self.runError()
+            self.runError("bad return address")
         else:    
             pop_this_many = self._tos - (self._act - 1)   
             if(pop_this_many >= len(self._dataMem)):               
-                self.runError()
+                self.runError("more parameters than items in stack")
             else: 
                 self._pc = self._dataMem[self._act + 1].int() + 1     
                 self._act = self._dataMem[self._act].int()
