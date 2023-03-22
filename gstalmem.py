@@ -70,7 +70,7 @@ class CodeCell:
 
     def __init__(self, opcode, operand):
         if opcode not in self._dictionary:
-            print("ASDFKJL;"); return
+            return
         else:
             opcode_value = self._dictionary[opcode]
             opcode_number = opcode_value[0]

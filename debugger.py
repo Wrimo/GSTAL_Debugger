@@ -11,12 +11,11 @@ from tkinter import *
 from tkinter import ttk
 import tkinter as tk
 from tkinter.filedialog import asksaveasfilename, askopenfilename
-from tkinter.scrolledtext import ScrolledText
 from GSTAL_Virtual_Machine import GSTALVM
 import os
 
 from uimanager import *
-from custom_ui import *
+
 
 
 # USER ACTIONS
@@ -168,7 +167,7 @@ stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
 stack_frame = Frame(stack_reg_frame, width=350, height=400)
 stack_frame.grid(column=0, row=0, sticky=NSEW)
 
-reg_frame = Frame(stack_reg_frame, bg="grey", width=50, height=400)
+reg_frame = Frame(stack_reg_frame, bg="grey", width=40, height=400)
 reg_frame.grid(column=1, row=0, sticky=NSEW)
 
 stack_reg_frame.grid_columnconfigure(1, weight=1)
@@ -178,25 +177,25 @@ play_img = tk.PhotoImage(file="Assets/play.png")
 stop_img = tk.PhotoImage(file="Assets/stop-button.png")
 play_button = tk.Button(control_frame, image=play_img,
                         command=run_button, compound=CENTER)
-play_button.grid(column=0, row=0)
+play_button.grid(column=0, row=0, padx=1, pady=1)
 
 fastforward_img = tk.PhotoImage(file="Assets/fast-forward.png")
 runend_button = tk.Button(
     control_frame, image=fastforward_img, command=run_end, compound=CENTER)
-runend_button.grid(column=1, row=0)
+runend_button.grid(column=1, row=0, padx=1, pady=1)
 
 
 arrow_img = tk.PhotoImage(file="Assets/right-arrow.png")
 step_button = tk.Button(control_frame, image=arrow_img,
                         command=step_run, compound=CENTER)
-step_button.grid(column=2, row=0)
+step_button.grid(column=2, row=0, padx=1)
 
 speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
-speed_label.grid(column=3, row=0)
+speed_label.grid(column=3, row=0, padx=1, pady=1)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0,
                          orient="horizontal", command=slider_change)
-speed_slider.grid(column=4, row=0)
+speed_slider.grid(column=4, row=0, padx=1, pady=1)
 
 
 # editor
@@ -209,26 +208,27 @@ output.grid(column=0, row=0, sticky=NSEW)
 
 
 # stack and register view
-stack = StackObject(stack_frame, width=370, height=300)
+stack = StackObject(stack_frame, width=390, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
 stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
-stack_buttons.grid(column=0, row=1, sticky=EW, padx=2)
+stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
 
 int_button = Button(stack_buttons, text="INT", command=v.stack_int)
-int_button.grid(column=2, row=0, padx=15)
+int_button.grid(column=1, row=0, padx=20, sticky=EW)
 
 float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
-float_button.grid(column=3, row=0, padx=15)
+float_button.grid(column=2, row=0, padx=20, sticky=EW)
 
 char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
-char_button.grid(column=4, row=0, padx=15)
+char_button.grid(column=3, row=0, padx=20, sticky=EW)
+
+hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
+hex_button.grid(column=4, row=0, padx=20, sticky=EW)
 
 # bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
 # bin_button.grid(column=5, row=0, padx=5)
 
-hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
-hex_button.grid(column=6, row=0, padx=15)
 
 
 tos_label = RegisterObject(reg_frame, bg="grey", text="tos",

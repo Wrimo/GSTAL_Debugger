@@ -40,6 +40,12 @@ class StackObject(Frame):
         def update_value(self, value, font_size):
             self.canvas.itemconfig(self.value_text, font=f"haveltica {font_size} bold", text=f"{value}")
 
+        def highlight(self): 
+            self.canvas.itemconfig(self.in_text, fill="red")
+
+        def unhighlight(self):
+            self.canvas.itemconfig(self.in_text, fill="black")
+
         def __del__(self):
             try:
                 self.canvas.delete(self.background)
@@ -47,7 +53,7 @@ class StackObject(Frame):
                 self.canvas.delete(self.value_text)
                 self.canvas.delete(self.line)
             except:
-                pass  # the only issue here occurs when the program is being exited and the destruction of root destroyed these widgets before this code runs.f
+                pass  # the only issue here occurs when the program is being exited and the destruction of root destroyed these widgets before this code runs.
 
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
@@ -68,6 +74,7 @@ class StackObject(Frame):
         self.state = StackObject.State.INT
         self.font_size = 20
         self.gap = 40
+        self.highlighted = None # used to keep track of the highlighted entry to unmark it on change
 
     def add_text(self, value):
         item = StackObject.StackItem(self.canvas, len(self.stack), value, (self.x, self.y), self.font_size)
@@ -78,21 +85,20 @@ class StackObject(Frame):
             self.canvas.yview_moveto('0.0')
         return item
 
-    def highglight_text(self, text):
-        self.canvas.itemconfigure(text, fill="red")
-
     def update_stack(self, stack, act):
         if len(self.stack) == 0:  # needed for the case when fast mode is active, so the stack is empty and many things must be added
             for i in range(0, len(stack)):
                 self.push_item(stack[i])
             return
+        
+        if self.highlighted is not None: 
+            self.highlighted.unhighlight()
 
         for i in range(0, len(stack)):
             if self.stack[i][0] != stack[i]:  # item has changed
-                self.canvas.itemconfigure(
-                    self.stack[i][1], text=f"{i}: {self.convert_item(stack[i])}")
+                    self.stack[i][1].update_value(self.convert_item(stack[i]), self.font_size)
             if i == act:
-                self.highglight_text(self.stack[i][1])
+                self.stack[i][1].highlight()
 
     def push_item(self, item):  # add an item to the stack
         value = self.convert_item(item)
@@ -192,13 +198,14 @@ class TerminalObject(Frame):
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=("haveltica 12"))
+            self.x, self.y, anchor=SW, font=("courier 12"))
 
     def add_text(self, s):
         if self.line is None:
             self.create_text()
-
+        
         self.canvas.insert(self.line, "end", s)
+
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.canvas.yview_moveto('1.0')
@@ -265,7 +272,7 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         self.linenumbers.redraw()
 
     def get(self):
-        return self.text.get(1.0, END)
+        return self.text.get(1.0, "end-1c")
 
     def clear(self):
         self.text.delete(1.0, END)
