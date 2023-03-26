@@ -25,6 +25,20 @@ class View:
         self.editor.text.see(float(pc + 15))
         self.stack.update_stack(stack, act)
 
+
+    def program_start(self): 
+        self.terminal.clear()
+        self.editor.clear_highlight()
+        self.stack.clear_stack()
+        self.editor.disable()
+
+    def program_end(self): 
+        self.play_button.config(image=self.play_image)
+        self.clear_highlight()
+        self.stack.clear_stack()
+        self.editor.enable()
+
+
     def add_to_stack(self, item):
         if self.fast_mode.get(): 
             return
@@ -34,10 +48,6 @@ class View:
         if self.fast_mode.get(): 
             return
         self.stack.pop_item()
-
-    def reset(self): 
-        self.terminal.clear()
-        self.editor.clear_highlight()
 
     def wait(self, call_back):
         if(self.fast_mode.get()):
@@ -63,10 +73,6 @@ class View:
 
     def clear_highlight(self):
         self.editor.clear_highlight()
-
-    def program_end(self): 
-        self.play_button.config(image=self.play_image)
-        self.clear_highlight()
 
     def stack_int(self): 
         self.stack.int_mode()

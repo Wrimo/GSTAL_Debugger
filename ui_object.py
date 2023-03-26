@@ -225,7 +225,7 @@ class TerminalObject(Frame):
     def get_entry(self):
         self.add_entry()
         self.wait_variable(self.entered)
-        self.entry.configure(state="disabled")
+        self.entry.configure(state=DISABLED)
         return self.entry.get()
 
     def clear(self):
@@ -268,6 +268,13 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
 
         self.line = 0  # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order
 
+    def disable(self):
+        self.text.configure(state="disable")
+
+    def enable(self): 
+        self.text.configure(state="normal")
+
+
     def _on_change(self, event):
         self.linenumbers.redraw()
 
@@ -302,6 +309,9 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
             # let the actual widget perform the requested action
             cmd = (self._orig,) + args
             result = self.tk.call(cmd)
+
+            if(args[0] in ("insert", "replace", "delete")):
+                self.winfo_toplevel().title("* The BC GSTAL Debugger")
 
             # generate an event if something was added or deleted,
             # or the cursor position changed

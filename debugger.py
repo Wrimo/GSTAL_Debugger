@@ -34,6 +34,8 @@ def open_file(event=None):
     except:
         v.write_terminal("An error occurred opening the file")
 
+    root.title("The BC GSTAL Debugger")
+
 
 def new_file(event=None):
     global file_path
@@ -55,6 +57,7 @@ def save_file(event=None):
         code = editor.get()
         file.write(code)
 
+    root.title("The BC GSTAL Debugger")
     file_name = os.path.basename(file_path) # will need to change this to let the debugger work with files not in the same directory
 
 
@@ -114,8 +117,7 @@ def exit(event=None):
 
 # HELPER FUNCTIONS
 def config_start():
-    v.reset()
-    vm.stack_reset()
+    v.program_start()
     vm.load(os.path.basename(file_path))
     play_button.config(image=stop_img)
 
@@ -133,7 +135,6 @@ root = Tk()
 root.title("The BC Gstal Debugger")
 root.geometry("+1+1")
 root.resizable(0, 0)
-root.title = "GSTAL Debugger"
 is_running = False
 
 vm = GSTALVM()
@@ -287,6 +288,5 @@ v.root = root
 vm.view = v
 speed_slider.set(0.5)
 new_file()
-
 
 root.mainloop()
