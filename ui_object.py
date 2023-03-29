@@ -112,12 +112,6 @@ class StackObject(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         del self.stack[last]
 
-    def clear_stack(self):
-        self.canvas.delete("all")
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.y = self.height
-        self.stack = []
-
     def int_mode(self):
         if self.state == StackObject.State.INT:
             return
@@ -198,7 +192,7 @@ class TerminalObject(Frame):
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=("courier 12"))
+            self.x, self.y, anchor=SW, font=("courier 11"))
 
     def add_text(self, s):
         if self.line is None:
@@ -235,8 +229,6 @@ class TerminalObject(Frame):
         self.create_text()
 
 # simple wrapper for labels, used to display register values
-
-
 class RegisterObject(Label):
     def __init__(self, *args, **kwargs):
         Label.__init__(self, *args, **kwargs)
@@ -246,8 +238,6 @@ class RegisterObject(Label):
         self.configure(text=f"{self.text} {val}")
 
 # custom widget for the editor box. allows for line numbers and breakpoint selection
-
-
 class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-adding-line-number-to-text-widget
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)

@@ -29,13 +29,11 @@ class View:
     def program_start(self): 
         self.terminal.clear()
         self.editor.clear_highlight()
-        self.stack.clear_stack()
         self.editor.disable()
 
     def program_end(self): 
         self.play_button.config(image=self.play_image)
         self.clear_highlight()
-        self.stack.clear_stack()
         self.editor.enable()
 
 

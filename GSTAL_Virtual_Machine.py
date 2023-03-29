@@ -61,6 +61,7 @@ class GSTALVM:
         self._running = False
         self._pc = -1
         self.view.program_end()
+        self.full_reset()
         return
 
     def full_reset(self): # resets code and data memory 
@@ -137,7 +138,7 @@ class GSTALVM:
                 self._codeMem = allPiece
             else:
                 flag = True
-                self.runError(f"This instruction is not in the GSTAL dictionary: {opcode}")
+                self.runError(f"Bad instruction: {opcode}")
             i = i+1    
         self._inst_count = len(self._codeMem)
         return flag
@@ -171,8 +172,7 @@ class GSTALVM:
         if not finished and not self.view.line_is_breakpoint(self._pc):  
                 self.view.wait(self.run)
         elif finished: 
-            self.view.program_end()
-            self.view.clear_highlight()
+            self.stop()
 
     def step_run(self):
         self.execute()
