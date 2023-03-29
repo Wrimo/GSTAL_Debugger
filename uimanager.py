@@ -66,6 +66,9 @@ class View:
         val = self.terminal.get_entry()
         return val
     
+    def clear_all_breakpoints(self):
+        self.editor.linenumbers.clear_breakpoints()
+
     def line_is_breakpoint(self, line) -> bool: 
         return self.editor.linenumbers.breakpoints[line]
 

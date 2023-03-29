@@ -16,13 +16,11 @@ import os
 
 from uimanager import *
 
-
-
 # USER ACTIONS
 def open_file(event=None):
     global file_path
-    global file_name
     stop()
+    old_path = file_path
     path = askopenfilename()
     file_path = path
     try:
@@ -30,9 +28,10 @@ def open_file(event=None):
             code = file.read()
             editor.clear()
             editor.insert(code)
-        file_name = os.path.basename(file_path)
+            clear_breakpoints()
     except:
         v.write_terminal("An error occurred opening the file")
+        file_path = old_path
 
     root.title("The BC GSTAL Debugger")
 
@@ -47,7 +46,6 @@ def new_file(event=None):
 
 def save_file(event=None):
     global file_path
-    global file_name
     if file_path == '':
         save_path = asksaveasfilename()
         file_path = save_path
@@ -57,8 +55,7 @@ def save_file(event=None):
         code = editor.get()
         file.write(code)
 
-    root.title("The BC GSTAL Debugger")
-    file_name = os.path.basename(file_path) # will need to change this to let the debugger work with files not in the same directory
+    root.title("The BC GSTAL Debugger")  # will need to change this to let the debugger work with files not in the same directory
 
 
 def save_as(event=None):
@@ -68,8 +65,6 @@ def save_as(event=None):
     with open(save_path, "w") as file:
         code = editor.get()
         file.write(code)
-
-    vm.load(os.path.basename(file_path))
 
 
 def close(event=None):
@@ -114,11 +109,14 @@ def run_button():
 def exit(event=None):
     on_exit()
 
+def clear_breakpoints(event=None): 
+    v.clear_all_breakpoints()
+
 
 # HELPER FUNCTIONS
 def config_start():
     v.program_start()
-    vm.load(os.path.basename(file_path))
+    vm.load(file_path)
     play_button.config(image=stop_img)
 
 def enter_pressed(event):
@@ -245,7 +243,7 @@ act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
 
 
 file_menu = Menu(menu, tearoff=0)
-edit_menu = Menu(menu, tearoff=0)
+debug_menu = Menu(menu, tearoff=0)
 run_menu = Menu(menu, tearoff=0)
 options_menu = Menu(menu, tearoff=0)
 
@@ -253,7 +251,7 @@ options_menu = Menu(menu, tearoff=0)
 v.fast_mode = BooleanVar()
 v.fast_mode.set(False)
 menu.add_cascade(label="File", menu=file_menu)
-menu.add_cascade(label="Edit", menu=edit_menu)
+menu.add_cascade(label="Debug", menu=debug_menu)
 menu.add_cascade(label="Run", menu=run_menu)
 menu.add_cascade(label="Options", menu=options_menu)
 file_menu.add_command(label="Open", accelerator="Ctrl+O", command=open_file)
@@ -269,6 +267,7 @@ run_menu.add_command(label="Stop", command=stop)
 run_menu.add_separator()
 run_menu.add_command(label="Step run", command=step_run)
 run_menu.add_command(label="Run to end", command=run_end)
+debug_menu.add_command(label="Clear breakpoints", command=clear_breakpoints)
 options_menu.add_checkbutton(label="Fast Mode", variable=v.fast_mode, onvalue=True, offvalue=False)
 
 

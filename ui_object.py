@@ -192,7 +192,7 @@ class TerminalObject(Frame):
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=("courier 11"))
+            self.x, self.y, anchor=SW, font=("courier 10"))
 
     def add_text(self, s):
         if self.line is None:
@@ -208,7 +208,7 @@ class TerminalObject(Frame):
         self.entry = Entry(self, width=45, bg="grey",
                            disabledbackground="grey",
                            disabledforeground="black",
-                           borderwidth=0, highlightthickness=0, font=("haveltica 12"))
+                           borderwidth=0, highlightthickness=0, font=("courier 10"))
         self.entry.focus_set()
         self.y += 25
         self.canvas.create_window(self.x, self.y, window=self.entry, anchor=SW)
@@ -256,7 +256,7 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         self.text.bind("<<Change>>", self._on_change)
         self.text.bind("<Configure>", self._on_change)
 
-        self.line = 0  # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order
+        self.line = 0  # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order due to jumps
 
     def disable(self):
         self.text.configure(state="disable")
@@ -353,4 +353,8 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
 
         def breakpoint_click(self, line):
             self.breakpoints[line] = not self.breakpoints[line]
+            self.redraw()
+
+        def clear_breakpoints(self):
+            self.breakpoints = defaultdict(bool)
             self.redraw()
