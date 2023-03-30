@@ -11,7 +11,7 @@ from collections import defaultdict
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
-import textwrap
+from textwrap import TextWrapper
 from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 from enum import Enum
@@ -198,6 +198,11 @@ class TerminalObject(Frame):
         if self.line is None:
             self.create_text()
         
+        txt = self.canvas.itemcget(self.line, 'text')   # simple implementation of a word wrap feature 
+        if len(txt) % 68 == 0:                          # works since the terminal is using monospace font
+            self.canvas.insert(self.line, "end", "\n")
+    
+
         self.canvas.insert(self.line, "end", s)
 
         self.canvas.update_idletasks()

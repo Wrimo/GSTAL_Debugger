@@ -9,6 +9,7 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter.messagebox import showinfo
 import tkinter as tk
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from GSTAL_Virtual_Machine import GSTALVM
@@ -55,7 +56,7 @@ def save_file(event=None):
         code = editor.get()
         file.write(code)
 
-    root.title("The BC GSTAL Debugger")  # will need to change this to let the debugger work with files not in the same directory
+    root.title("The BC GSTAL Debugger") 
 
 
 def save_as(event=None):
@@ -65,6 +66,7 @@ def save_as(event=None):
     with open(save_path, "w") as file:
         code = editor.get()
         file.write(code)
+    root.title("The BC GSTAL Debugger") 
 
 
 def close(event=None):
@@ -94,11 +96,11 @@ def run_end(event=None):
     vm.run()
 
 
-def slider_change(event):
+def slider_change(event=None):
     v.delay = int(speed_slider.get() * 1000)
 
 
-def run_button():
+def run_button(event=None):
     if not vm.finished_execution():
         vm.stop()
     else:
@@ -106,11 +108,33 @@ def run_button():
     return
 
 
+def about(event=None):
+    new_win = Toplevel(root)
+    new_win.geometry("+1+1")
+    new_win.title("About")
+    new_win.resizable(0, 0)
+    can = Canvas(new_win, width=400, height=400)
+    can.grid(column=0, row=0)
+    can.create_text(45, 50, text="ABOUT", font=("haveltica 16 bold"))
+    can.create_text(45, 100, anchor=W, text="The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse. The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.")
+    
+    # Label(new_win, text="The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.", font=("haveltica 9 bold")).grid(column=0, row=0, sticky=W)
+    # Label(new_win, text="GSTAL is the target language used in the Lipscomb Compiler course, and this program was created to make debugging it easier.", font=("haveltica 9 bold")).grid(column=0, row=1, sticky=W)
+    # Label(new_win, text="").grid(column=0, row=2)
+    # Label(new_win, text="Credits:\n Dr. Bryan Crawley (advisor) \n Bethany Cadena (GSTAL virtual machine) \n Brennan Curtis Cottrell (GUI debugger)", font=("haveltica 9 bold")).grid(column=0, row=3, sticky=W)
+
+    
+def help(event=None):
+    showinfo("Help", "Here's some help on how to use the BC GSTAL Debugger")
+
 def exit(event=None):
     on_exit()
 
 def clear_breakpoints(event=None): 
     v.clear_all_breakpoints()
+
+def enter_pressed(event):
+    v.input_done()
 
 
 # HELPER FUNCTIONS
@@ -118,10 +142,6 @@ def config_start():
     v.program_start()
     vm.load(file_path)
     play_button.config(image=stop_img)
-
-def enter_pressed(event):
-    v.input_done()
-
 
 def on_exit():
     vm.entered.set(vm.entered.get())
@@ -245,7 +265,7 @@ act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
 file_menu = Menu(menu, tearoff=0)
 debug_menu = Menu(menu, tearoff=0)
 run_menu = Menu(menu, tearoff=0)
-options_menu = Menu(menu, tearoff=0)
+more_menu = Menu(menu, tearoff=0)
 
 
 v.fast_mode = BooleanVar()
@@ -253,7 +273,7 @@ v.fast_mode.set(False)
 menu.add_cascade(label="File", menu=file_menu)
 menu.add_cascade(label="Debug", menu=debug_menu)
 menu.add_cascade(label="Run", menu=run_menu)
-menu.add_cascade(label="Options", menu=options_menu)
+menu.add_cascade(label="More", menu=more_menu)
 file_menu.add_command(label="Open", accelerator="Ctrl+O", command=open_file)
 file_menu.add_command(label="New File", accelerator="Ctrl+N", command=new_file)
 file_menu.add_separator()
@@ -268,7 +288,10 @@ run_menu.add_separator()
 run_menu.add_command(label="Step run", command=step_run)
 run_menu.add_command(label="Run to end", command=run_end)
 debug_menu.add_command(label="Clear breakpoints", command=clear_breakpoints)
-options_menu.add_checkbutton(label="Fast Mode", variable=v.fast_mode, onvalue=True, offvalue=False)
+debug_menu.add_checkbutton(label="Disable debugging", variable=v.fast_mode, onvalue=True, offvalue=False)
+more_menu.add_command(label="About", command=about)
+more_menu.add_command(label="Help", command=help)
+
 
 
 root.bind("<Return>", enter_pressed)
@@ -287,5 +310,4 @@ v.root = root
 vm.view = v
 speed_slider.set(0.5)
 new_file()
-
 root.mainloop()
