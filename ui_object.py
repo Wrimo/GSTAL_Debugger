@@ -184,7 +184,7 @@ class TerminalObject(Frame):
 
         self.height = self.y = kwargs["height"] - 20
         self.width = kwargs["width"]
-        self.x = 10
+        self.x = 15
 
         self.line = None
         self.entered = IntVar()
@@ -192,18 +192,20 @@ class TerminalObject(Frame):
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=("courier 10"))
+            self.x, self.y, anchor=SW, font=("courier 14"))
 
     def add_text(self, s):
         if self.line is None:
             self.create_text()
         
-        txt = self.canvas.itemcget(self.line, 'text')   # simple implementation of a word wrap feature 
-        if len(txt) % 68 == 0:                          # works since the terminal is using monospace font
-            self.canvas.insert(self.line, "end", "\n")
-    
+        
+        bounds = self.canvas.bbox(self.line)
+        width = bounds[2] - bounds[0]
+        txt = self.canvas.itemcget(self.line, 'text')  
+        if width > self.width: 
+            self.canvas.insert(self.line, len(txt) - 1, "\n")
 
-        self.canvas.insert(self.line, "end", s)
+        self.canvas.insert(self.line, len(txt), s)
 
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -213,7 +215,7 @@ class TerminalObject(Frame):
         self.entry = Entry(self, width=45, bg="grey",
                            disabledbackground="grey",
                            disabledforeground="black",
-                           borderwidth=0, highlightthickness=0, font=("courier 10"))
+                           borderwidth=0, highlightthickness=0, font=("courier 14"))
         self.entry.focus_set()
         self.y += 25
         self.canvas.create_window(self.x, self.y, window=self.entry, anchor=SW)
