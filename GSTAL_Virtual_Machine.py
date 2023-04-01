@@ -14,7 +14,9 @@ import sys
 import argparse
 import time
 from gstalmem import DataCell
+from ui_object import ProgramState
 from uimanager import View
+from enum import Enum
 
 #--------------------------GSTALVM-----------------------------------------------    
 
@@ -42,7 +44,7 @@ class GSTALVM:
         return self._tos+1
     
     def finished_execution(self):
-        return self._pc >= self._inst_count or self._pc < 0 or not self._running
+        return self._pc >= self._inst_count or self._pc < 0
 
     def runError(self, error="unknown"):    
         self.view.write_terminal(f"ERROR: {error}") 
@@ -57,13 +59,6 @@ class GSTALVM:
         self._executing = False
         return    
 
-    def stop(self):
-        self._running = False
-        self._pc = -1
-        self.view.program_end()
-        self.full_reset()
-        return
-
     def full_reset(self): # resets code and data memory 
         self.stack_reset() 
         self.init()
@@ -76,8 +71,8 @@ class GSTALVM:
         self._inst_count = 0
         self._dataMem = []
         self._codeMem = []
-        self._running = False
-        self._executing = False # is currently executing an instruciton, needed to keep user from spamming step run on an INI instruction
+        self._state = ProgramState.STOPPED
+        self._executing = False # is currently executing an instruction, needed to keep user from spamming step run on an INI instruction
 
     def load(self, file):   #add flag, check operand is valid 
         self.full_reset()
@@ -142,13 +137,37 @@ class GSTALVM:
             i = i+1    
         self._inst_count = len(self._codeMem)
         return flag
-            
-            
+    
+    def set_state(self, state):
+        if self._state != state: 
+            self.view.available_buttons(state)
+            self._state = state 
+        
+    def start(self):
+        self.set_state(ProgramState.RUNNING)
+
+    def pause(self):
+        self.set_state(ProgramState.PAUSED)
+
+    def stop(self):
+        self.set_state(ProgramState.STOPPED)
+        self._pc = -1
+        self.view.program_end()
+        self.full_reset()
+        return
+    
+    def run_without_stopping(self):
+        self.set_state(ProgramState.NO_BREAK_RUNNING)
+        
+    
     def execute(self):   
-        if(self._pc < 0 or self._pc >= self._inst_count or self._executing):
+        if(self._executing):
             return
+        if(self._pc < 0 or self._pc >= self._inst_count):
+            self.stop()
+            return
+        
         self._executing = True
-        self._running = True
         opcode = self._codeMem[self._pc][0]
         operand = self._codeMem[self._pc][1] 
         instr = "self."+opcode+"("
@@ -156,23 +175,21 @@ class GSTALVM:
             instr = instr + str(operand)
         instr = instr + ")"
         exec(instr)  
-        self._executing = False
-        # update UI components. 
-        self.view.update(self._dataMem, self._tos, self._act, self._pc)      
+
+        if self.view.line_is_breakpoint(self._pc) and self._state != ProgramState.NO_BREAK_RUNNING: 
+                self.set_state(ProgramState.PAUSED)
+        self._executing = False 
+       
+        self.view.update(self._dataMem, self._tos, self._act, self._pc)  # update UI components.   
         return    
 
-    # def run(self):
-    #     while(self._pc >= 0 and self._pc < self._inst_count):
-    #         self.execute()
-    #     return  
 
     def run(self):
-        self.execute()
-        finished = self.finished_execution() 
-        if not finished and not self.view.line_is_breakpoint(self._pc):  
-                self.view.wait(self.run)
-        elif finished: 
+        if self.finished_execution():
             self.stop()
+        elif self._state == ProgramState.RUNNING or self._state == ProgramState.NO_BREAK_RUNNING:  
+                self.execute()
+                self.view.wait(self.run)
 
     def step_run(self):
         self.execute()

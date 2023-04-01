@@ -75,6 +75,9 @@ class View:
     def clear_highlight(self):
         self.editor.clear_highlight()
 
+    def available_buttons(self, state): 
+        self.buttons.state_adjust(state)
+
     def stack_int(self): 
         self.stack.int_mode()
     def stack_float(self): 

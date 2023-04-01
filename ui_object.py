@@ -40,7 +40,7 @@ class StackObject(Frame):
         def update_value(self, value, font_size):
             self.canvas.itemconfig(self.value_text, font=f"haveltica {font_size} bold", text=f"{value}")
 
-        def highlight(self): 
+        def highlight(self):
             self.canvas.itemconfig(self.in_text, fill="red")
 
         def unhighlight(self):
@@ -74,7 +74,7 @@ class StackObject(Frame):
         self.state = StackObject.State.INT
         self.font_size = 20
         self.gap = 40
-        self.highlighted = None # used to keep track of the highlighted entry to unmark it on change
+        self.highlighted = None  # used to keep track of the highlighted entry to unmark it on change
 
     def add_text(self, value):
         item = StackObject.StackItem(self.canvas, len(self.stack), value, (self.x, self.y), self.font_size)
@@ -90,8 +90,8 @@ class StackObject(Frame):
             for i in range(0, len(stack)):
                 self.push_item(stack[i])
             return
-        
-        if self.highlighted is not None: 
+
+        if self.highlighted is not None:
             self.highlighted.unhighlight()
 
         for i in range(0, len(stack)):
@@ -197,12 +197,11 @@ class TerminalObject(Frame):
     def add_text(self, s):
         if self.line is None:
             self.create_text()
-        
-        
+
         bounds = self.canvas.bbox(self.line)
         width = bounds[2] - bounds[0]
-        txt = self.canvas.itemcget(self.line, 'text')  
-        if width > self.width: 
+        txt = self.canvas.itemcget(self.line, 'text')
+        if width > self.width:
             self.canvas.insert(self.line, len(txt) - 1, "\n")
 
         self.canvas.insert(self.line, len(txt), s)
@@ -236,6 +235,8 @@ class TerminalObject(Frame):
         self.create_text()
 
 # simple wrapper for labels, used to display register values
+
+
 class RegisterObject(Label):
     def __init__(self, *args, **kwargs):
         Label.__init__(self, *args, **kwargs)
@@ -245,6 +246,8 @@ class RegisterObject(Label):
         self.configure(text=f"{self.text} {val}")
 
 # custom widget for the editor box. allows for line numbers and breakpoint selection
+
+
 class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-adding-line-number-to-text-widget
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
@@ -268,9 +271,8 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
     def disable(self):
         self.text.configure(state="disable")
 
-    def enable(self): 
+    def enable(self):
         self.text.configure(state="normal")
-
 
     def _on_change(self, event):
         self.linenumbers.redraw()
@@ -365,3 +367,39 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         def clear_breakpoints(self):
             self.breakpoints = defaultdict(bool)
             self.redraw()
+
+
+class ButtonContainer:  # simple class to handle enabling / disabling buttons based on a state
+    def __init__(self, play, stop, run_end, no_break, step):
+        self.play = play
+        self.stop = stop
+        self.run_end = run_end
+        self.no_break = no_break
+        self.step = step
+        self.state_adjust(ProgramState.STOPPED)
+
+    def state_adjust(self, state):
+        if state == ProgramState.RUNNING or state == ProgramState.NO_BREAK_RUNNING: 
+            self.play.configure(state="active")
+            self.stop.configure(state="active")
+            self.run_end.configure(state="disabled")
+            self.no_break.configure(state="disabled")
+            self.step.configure(state="disabled")
+        elif state == ProgramState.PAUSED:
+            self.play.configure(state="disabled")
+            self.stop.configure(state="active")
+            self.run_end.configure(state="active")
+            self.no_break.configure(state="active")
+            self.step.configure(state="active")
+        elif state == ProgramState.STOPPED: 
+            self.play.configure(state="active")
+            self.stop.configure(state="disabled")
+            self.run_end.configure(state="disabled")
+            self.no_break.configure(state="disabled")
+            self.step.configure(state="disabled")
+
+class ProgramState(Enum): # simple enum describing state of GSTAL program
+    RUNNING = 0 
+    PAUSED = 1
+    STOPPED = 2
+    NO_BREAK_RUNNING = 3
