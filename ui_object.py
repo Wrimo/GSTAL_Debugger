@@ -12,6 +12,7 @@ from tkinter import *
 from tkinter import ttk
 import tkinter as tk
 from textwrap import TextWrapper
+import tkinter
 from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 from enum import Enum
@@ -96,7 +97,7 @@ class StackObject(Frame):
 
         for i in range(0, len(stack)):
             if self.stack[i][0] != stack[i]:  # item has changed
-                    self.stack[i][1].update_value(self.convert_item(stack[i]), self.font_size)
+                self.stack[i][1].update_value(self.convert_item(stack[i]), self.font_size)
             if i == act:
                 self.stack[i][1].highlight()
 
@@ -315,11 +316,11 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
             # generate an event if something was added or deleted,
             # or the cursor position changed
             if (args[0] in ("insert", "replace", "delete", "see") or
-                args[0:3] == ("mark", "set", "insert") or
-                args[0:2] == ("xview", "moveto") or
-                args[0:2] == ("xview", "scroll") or
-                args[0:2] == ("yview", "moveto") or
-                args[0:2] == ("yview", "scroll")
+                    args[0:3] == ("mark", "set", "insert") or
+                    args[0:2] == ("xview", "moveto") or
+                    args[0:2] == ("xview", "scroll") or
+                    args[0:2] == ("yview", "moveto") or
+                    args[0:2] == ("yview", "scroll")
                 ):
                 self.event_generate("<<Change>>", when="tail")
 
@@ -379,7 +380,7 @@ class ButtonContainer:  # simple class to handle enabling / disabling buttons ba
         self.state_adjust(ProgramState.STOPPED)
 
     def state_adjust(self, state):
-        if state == ProgramState.RUNNING or state == ProgramState.NO_BREAK_RUNNING: 
+        if state == ProgramState.RUNNING or state == ProgramState.NO_BREAK_RUNNING:
             self.play.configure(state="active")
             self.stop.configure(state="active")
             self.run_end.configure(state="disabled")
@@ -391,15 +392,54 @@ class ButtonContainer:  # simple class to handle enabling / disabling buttons ba
             self.run_end.configure(state="active")
             self.no_break.configure(state="active")
             self.step.configure(state="active")
-        elif state == ProgramState.STOPPED: 
+        elif state == ProgramState.STOPPED:
             self.play.configure(state="active")
             self.stop.configure(state="disabled")
             self.run_end.configure(state="disabled")
             self.no_break.configure(state="disabled")
             self.step.configure(state="disabled")
 
-class ProgramState(Enum): # simple enum describing state of GSTAL program
-    RUNNING = 0 
+# Class for tooltips on hover from  https://stackoverflow.com/questions/20399243/display-message-when-hovering-over-something-with-mouse-cursor-in-python
+class ToolTip(object):
+
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+        def enter(event):
+            self.showtip(text)
+        def leave(event):
+            self.hidetip()
+
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 57
+        y = y + cy + self.widget.winfo_rooty() + 45
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        label = Label(tw, text=self.text, justify=LEFT,
+                      background="#ffffe0", relief=SOLID, borderwidth=1,
+                      font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+class ProgramState(Enum):  # simple enum describing state of GSTAL program
+    RUNNING = 0
     PAUSED = 1
     STOPPED = 2
     NO_BREAK_RUNNING = 3

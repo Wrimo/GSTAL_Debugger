@@ -9,11 +9,9 @@
 
 from tkinter import *
 from tkinter import ttk
-from tkinter.messagebox import showinfo
 import tkinter as tk
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from GSTAL_Virtual_Machine import GSTALVM
-import os
 
 from uimanager import *
 
@@ -109,23 +107,50 @@ def run_button(event=None):
 
 def about(event=None):
     new_win = Toplevel(root)
-    new_win.geometry("+1+1")
-    new_win.title("About")
-    new_win.resizable(0, 0)
-    can = Canvas(new_win, width=400, height=400)
-    can.grid(column=0, row=0)
-    can.create_text(55, 50, text="ABOUT", font=("haveltica 16 bold"))
-    can.create_text(15, 115, anchor=W, font=("haveltica 12"), text="The BC GSTAL Debugger is a tool created at\nLipscomb University in Nashville, Tenesse.")
-    can.create_text(15, 200, anchor=W, font=("haveltica 12"), text="GSTAL is the target language for the compiler\nconstruction course. This program intends to\nmake debugging GSTAL code simpler and less\npainful.")
-    can.create_text(15, 325, anchor=SW, font=("haveltica 10 italic"), text="Credits:\n-Bethany Cadena (GSTAL virtual machine)\n-Brennan Curtis Cottrell (GUI debugger)\n-Dr. Bryan Crawley (advisor)")
-    # Label(new_win, text="The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.", font=("haveltica 9 bold")).grid(column=0, row=0, sticky=W)
-    # Label(new_win, text="GSTAL is the target language used in the Lipscomb Compiler course, and this program was created to make debugging it easier.", font=("haveltica 9 bold")).grid(column=0, row=1, sticky=W)
-    # Label(new_win, text="").grid(column=0, row=2)
-    # Label(new_win, text="Credits:\n Dr. Bryan Crawley (advisor) \n Bethany Cadena (GSTAL virtual machine) \n Brennan Curtis Cottrell (GUI debugger)", font=("haveltica 9 bold")).grid(column=0, row=3, sticky=W)
+    Label(new_win, text="ABOUT",
+          font=("haveltica 16 bold")).grid(row=0, column=0, sticky=N, pady=25)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The BC GSTAL Debugger is a tool created at Lipscomb University in Nashville, Tenesse.",
+          font=("haveltica 12")).grid(row=1, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="GSTAL is the target language for the compiler construction course. This program intends to make debugging GSTAL code simpler and less painful.", font=("haveltica 12")).grid(row=2, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="Credits:\n-Bethany Cadena (GSTAL virtual machine)\n-Brennan Curtis Cottrell (GUI debugger)\n-Dr. Bryan Crawley (advisor)",
+          font=("haveltica 12")).grid(row=3, column=0, sticky=W, pady=10, padx=10)
 
 
 def help(event=None):
-    showinfo("Help", "Here's some help on how to use the BC GSTAL Debugger")
+    new_win = Toplevel(root)
+    Label(new_win, text="HELP",
+          font=("haveltica 16 bold")).grid(row=0, column=0, sticky=N, pady=25)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The main purpose of the The BC GSTAL Debugger is debugging GSTAL code, but it can also be used to create and write new GSTAL programs.",
+          font=("haveltica 12")).grid(row=1, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="SECTIONS",
+          font=("haveltica 14")).grid(row=2, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="There are four main windows to the BC GSTAL Debugger that work together to create the ultimate GSTAL programming experience",
+          font=("haveltica 12")).grid(row=3, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The editor is used for editing GSTAL code and setting breakpoints.",
+          font=("haveltica 12")).grid(row=4, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The stack shows values stored in the GSTAL Virtual Machine stack during runtime.",
+          font=("haveltica 12")).grid(row=4, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The register view shows the current values of GSTAL's three registers.",
+          font=("haveltica 12")).grid(row=5, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The output window displays program ouput and prompts the user for input.",
+          font=("haveltica 12")).grid(row=6, column=0, sticky=W, pady=10, padx=10)
+
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="OTHER FEATURES",
+          font=("haveltica 14")).grid(row=7, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="Disable debugging option - turns off all debugging features and runs the program as fast as possible.",
+          font=("haveltica 12")).grid(row=8, column=0, sticky=W, pady=10, padx=10)
 
 
 def exit(event=None):
@@ -155,7 +180,6 @@ def config_start():
     vm.load(file_path)
     vm.start()
     play_button.config(image=pause_img)
-
 
 def on_exit():
     vm.entered.set(vm.entered.get())
@@ -220,25 +244,28 @@ fastforward_img = tk.PhotoImage(file="Assets/forward-icon.png")
 arrow_img = tk.PhotoImage(file="Assets/stair.png")
 
 
-play_button = tk.Button(control_frame, image=play_img,
-                        command=run_button, compound=CENTER)
+play_button = tk.Button(control_frame, image=play_img, command=run_button, compound=CENTER)
 play_button.grid(column=0, row=0, padx=1, pady=1)
+play_button_tip = ToolTip(play_button, "Start program")
 
 
-stop_button = tk.Button(control_frame, image=stop_img,
-                        command=stop, compound=CENTER)
+stop_button = tk.Button(control_frame, image=stop_img, command=stop, compound=CENTER)
 stop_button.grid(column=1, row=0, padx=1, pady=1)
+stop_button_tip = ToolTip(stop_button, "Stop program")
+
 
 
 runend_button = tk.Button(control_frame, image=continue_img, command=run_end, compound=CENTER)
 runend_button.grid(column=2, row=0, padx=1, pady=1)
+run_end_tip = ToolTip(runend_button, "Run to next breakpoint")
 
 run_nobreak = tk.Button(control_frame, image=fastforward_img, command=no_break_run_end, compound=CENTER)
 run_nobreak.grid(column=3, row=0, padx=1, pady=1)
+run_nobreak_tip = ToolTip(run_nobreak, "Run to end of program")
 
-step_button = tk.Button(control_frame, image=arrow_img,
-                        command=step_run, compound=CENTER)
+step_button = tk.Button(control_frame, image=arrow_img, command=step_run, compound=CENTER)
 step_button.grid(column=4, row=0, padx=1)
+step_button_tip =  ToolTip(step_button, "Execute next instruction")
 
 button_contain = ButtonContainer(play_button, stop_button, runend_button, run_nobreak, step_button)
 
@@ -251,7 +278,7 @@ speed_slider.grid(column=6, row=0, padx=1, pady=1)
 
 
 # EDITOR
-editor = EditorBox(editor_frame, width=30, height=90)
+editor = EditorBox(editor_frame)
 editor.grid(column=0, row=0, sticky=NSEW)
 
 # OUTPUT
