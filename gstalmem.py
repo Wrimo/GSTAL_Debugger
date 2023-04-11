@@ -31,8 +31,10 @@ class DataCell:
         return value
     
     def char(self): 
-        value = chr(self.int())
-        return value
+        value = self.int()
+        if value< 0x00 or value > 0x10FFFF: # out of range of chr()
+            return "N/A"
+        return chr(value)
     
     def bin(self): 
         return bin(int.from_bytes(self._content, byteorder=sys.byteorder))[2:] # 2: to get all of the bits and not the starting 0b 
