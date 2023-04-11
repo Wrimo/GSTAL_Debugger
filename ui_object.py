@@ -18,8 +18,6 @@ from tkinter.scrolledtext import ScrolledText
 from enum import Enum
 
 # Adds text at the bottom, expanding upwards. Useful for visualisation of stack.
-
-
 class StackObject(Frame):
     class State(Enum):
         INT = 0
@@ -76,6 +74,16 @@ class StackObject(Frame):
         self.font_size = 20
         self.gap = 40
         self.highlighted = None  # used to keep track of the highlighted entry to unmark it on change
+        def unbind(event): 
+            self.canvas.unbind_all("<MouseWheel>")
+        def bind(event):
+            self.canvas.bind_all("<MouseWheel>", self._mousewheel)
+
+        self.canvas.bind("<Enter>", bind)
+        self.canvas.bind("<Leave>", unbind)
+
+    def _mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def add_text(self, value):
         item = StackObject.StackItem(self.canvas, len(self.stack), value, (self.x, self.y), self.font_size)
@@ -190,6 +198,17 @@ class TerminalObject(Frame):
         self.line = None
         self.entered = IntVar()
 
+        def unbind(event): 
+            self.canvas.unbind_all("<MouseWheel>")
+        def bind(event):
+            self.canvas.bind_all("<MouseWheel>", self._mousewheel)
+
+        self.canvas.bind("<Enter>", bind)
+        self.canvas.bind("<Leave>", unbind)
+
+    def _mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
@@ -204,6 +223,7 @@ class TerminalObject(Frame):
         txt = self.canvas.itemcget(self.line, 'text')
         if width > self.width:
             self.canvas.insert(self.line, len(txt) - 1, "\n")
+            self.y += 25
 
         self.canvas.insert(self.line, len(txt), s)
 
@@ -236,8 +256,6 @@ class TerminalObject(Frame):
         self.create_text()
 
 # simple wrapper for labels, used to display register values
-
-
 class RegisterObject(Label):
     def __init__(self, *args, **kwargs):
         Label.__init__(self, *args, **kwargs)
@@ -246,9 +264,8 @@ class RegisterObject(Label):
     def write(self, val):
         self.configure(text=f"{self.text} {val}")
 
+
 # custom widget for the editor box. allows for line numbers and breakpoint selection
-
-
 class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-adding-line-number-to-text-widget
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
@@ -407,9 +424,10 @@ class ToolTip(object):
         self.tipwindow = None
         self.id = None
         self.x = self.y = 0
+        self.text = text
 
         def enter(event):
-            self.showtip(text)
+            self.showtip(self.text)
         def leave(event):
             self.hidetip()
 
@@ -437,6 +455,8 @@ class ToolTip(object):
         self.tipwindow = None
         if tw:
             tw.destroy()
+    def changetext(self, text):
+        self.text = text
 
 class ProgramState(Enum):  # simple enum describing state of GSTAL program
     RUNNING = 0
