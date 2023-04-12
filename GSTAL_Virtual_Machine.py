@@ -125,6 +125,7 @@ class GSTALVM:
             else:
                 text = " ".join(instr)
                 self.runError(f"bad instruction {text}")
+                return
 #check it
         i = 0
         while i < len(allInstr):
@@ -133,7 +134,8 @@ class GSTALVM:
                 self._codeMem = allPiece
             else:
                 flag = True
-                self.runError(f"Bad instruction: {opcode}")
+                self.runError(f"bad instruction {opcode}")
+                return
             i = i+1    
         self._inst_count = len(self._codeMem)
         return flag
@@ -163,7 +165,7 @@ class GSTALVM:
     def execute(self):   
         if(self._executing):
             return
-        if(self._pc < 0 or self._pc >= self._inst_count):
+        if(self.finished_execution()):
             self.stop()
             return
         
