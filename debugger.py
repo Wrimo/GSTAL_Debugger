@@ -75,6 +75,7 @@ def close(event=None):
 
 def stop(event=None):
     play_button.config(image=play_img)
+    play_button_tip.changetext("Start program")
     vm.stop()
 
 
@@ -107,6 +108,7 @@ def run_button(event=None):
 
 def about(event=None):
     new_win = Toplevel(root)
+    new_win.title("About")
     Label(new_win, text="ABOUT",
           font=("haveltica 16 bold")).grid(row=0, column=0, sticky=N, pady=25)
     Label(new_win, justify=LEFT, wraplength=500,
@@ -121,6 +123,7 @@ def about(event=None):
 
 def help(event=None):
     new_win = Toplevel(root)
+    new_win.title("Help")
     Label(new_win, text="HELP",
           font=("haveltica 16 bold")).grid(row=0, column=0, sticky=N, pady=25)
     Label(new_win, justify=LEFT, wraplength=500,
@@ -130,7 +133,7 @@ def help(event=None):
           text="SECTIONS",
           font=("haveltica 14")).grid(row=2, column=0, sticky=W, pady=10, padx=10)
     Label(new_win, justify=LEFT, wraplength=500,
-          text="There are four main windows to the BC GSTAL Debugger that work together to create the ultimate GSTAL programming experience",
+          text="There are five main sections to the BC GSTAL Debugger that work together to create the ultimate GSTAL programming experience",
           font=("haveltica 12")).grid(row=3, column=0, sticky=W, pady=10, padx=10)
     Label(new_win, justify=LEFT, wraplength=500,
           text="The editor is used for editing GSTAL code and setting breakpoints.",
@@ -144,6 +147,11 @@ def help(event=None):
     Label(new_win, justify=LEFT, wraplength=500,
           text="The output window displays program ouput and prompts the user for input.",
           font=("haveltica 12")).grid(row=6, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="The control bar offers control of program execution. The play/pause button is for starting and stopping execution. Stop stops the program. "
+          "Run to next breakpoint resumes normal execution from a pause, while run to end will continue executing but skip breakpoints. "
+          "Step run executes the only the next instruction",
+          font=("haveltica 12")).grid(row=6, column=0, sticky=W, pady=10, padx=10)
 
     Label(new_win, justify=LEFT, wraplength=500,
           text="OTHER FEATURES",
@@ -151,6 +159,9 @@ def help(event=None):
     Label(new_win, justify=LEFT, wraplength=500,
           text="Disable debugging option - turns off all debugging features and runs the program as fast as possible.",
           font=("haveltica 12")).grid(row=8, column=0, sticky=W, pady=10, padx=10)
+    Label(new_win, justify=LEFT, wraplength=500,
+          text="Clear all breakpoints - option in the Debug menu to clear all current breakpoints.",
+          font=("haveltica 12")).grid(row=9, column=0, sticky=W, pady=10, padx=10)
 
 
 def exit(event=None):
@@ -180,6 +191,8 @@ def config_start():
     vm.load(file_path)
     vm.start()
     play_button.config(image=pause_img)
+    play_button_tip.changetext("Pause program")
+
 
 def on_exit():
     vm.entered.set(vm.entered.get())
@@ -187,7 +200,6 @@ def on_exit():
     exit()
 
 # WINDOW CONFIGURATION
-
 
 root = Tk()
 root.title("The BC Gstal Debugger")
@@ -248,12 +260,9 @@ play_button = tk.Button(control_frame, image=play_img, command=run_button, compo
 play_button.grid(column=0, row=0, padx=1, pady=1)
 play_button_tip = ToolTip(play_button, "Start program")
 
-
 stop_button = tk.Button(control_frame, image=stop_img, command=stop, compound=CENTER)
 stop_button.grid(column=1, row=0, padx=1, pady=1)
 stop_button_tip = ToolTip(stop_button, "Stop program")
-
-
 
 runend_button = tk.Button(control_frame, image=continue_img, command=run_end, compound=CENTER)
 runend_button.grid(column=2, row=0, padx=1, pady=1)
@@ -265,15 +274,14 @@ run_nobreak_tip = ToolTip(run_nobreak, "Run to end of program")
 
 step_button = tk.Button(control_frame, image=arrow_img, command=step_run, compound=CENTER)
 step_button.grid(column=4, row=0, padx=1)
-step_button_tip =  ToolTip(step_button, "Execute next instruction")
+step_button_tip = ToolTip(step_button, "Execute next instruction")
 
 button_contain = ButtonContainer(play_button, stop_button, runend_button, run_nobreak, step_button)
 
 speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
 speed_label.grid(column=5, row=0, padx=1, pady=1)
 
-speed_slider = ttk.Scale(control_frame, from_=1, to=0,
-                         orient="horizontal", command=slider_change)
+speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
 speed_slider.grid(column=6, row=0, padx=1, pady=1)
 
 
@@ -285,7 +293,6 @@ editor.grid(column=0, row=0, sticky=NSEW)
 output = TerminalObject(output_frame, width=550, height=350)
 output.grid(column=0, row=0, sticky=NSEW)
 
-
 # STACK AND REGISTER VIEW
 stack = StackObject(stack_frame, width=390, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
@@ -294,16 +301,16 @@ stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
 stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
 
 int_button = Button(stack_buttons, text="INT", command=v.stack_int)
-int_button.grid(column=1, row=0, padx=20, sticky=EW)
+int_button.grid(column=1, row=0, padx=20, sticky=EW)  # for win - int_button.grid(column=1, row=0, padx=32)
 
 float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
-float_button.grid(column=2, row=0, padx=20, sticky=EW)
+float_button.grid(column=2, row=0, padx=20, sticky=EW)  # for win - float_button.grid(column=2, row=0, padx=32)
 
 char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
-char_button.grid(column=3, row=0, padx=20, sticky=EW)
+char_button.grid(column=3, row=0, padx=20, sticky=EW)  # for win - char_button.grid(column=3, row=0, padx=32)
 
 hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
-hex_button.grid(column=4, row=0, padx=20, sticky=EW)
+hex_button.grid(column=4, row=0, padx=20, sticky=EW)  # for win - hex_button.grid(column=4, row=0, padx=32)
 
 # bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
 # bin_button.grid(column=5, row=0, padx=5)
