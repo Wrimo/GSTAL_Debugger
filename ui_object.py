@@ -193,7 +193,7 @@ class TerminalObject(Frame):
 
         self.height = self.y = kwargs["height"] - 20
         self.width = kwargs["width"]
-        self.x = 15
+        self.x = 20
 
         self.line = None
         self.entered = IntVar()
@@ -212,7 +212,7 @@ class TerminalObject(Frame):
     def create_text(self):
         self.y += 25
         self.line = self.canvas.create_text(
-            self.x, self.y, anchor=SW, font=("courier 14"))
+            self.x, self.y, anchor=NW, font=("courier 10"))
 
     def add_text(self, s):
         if self.line is None:
@@ -235,9 +235,9 @@ class TerminalObject(Frame):
         self.entry = Entry(self, width=45, bg="grey",
                            disabledbackground="grey",
                            disabledforeground="black",
-                           borderwidth=0, highlightthickness=0, font=("courier 14"))
+                           borderwidth=0, highlightthickness=0, font=("courier 10"))
         self.entry.focus_set()
-        self.y += 25
+        self.y += 35
         self.canvas.create_window(self.x, self.y, window=self.entry, anchor=SW)
         self.create_text()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
