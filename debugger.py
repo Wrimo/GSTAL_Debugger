@@ -157,7 +157,7 @@ def help(event=None):
           text="OTHER FEATURES",
           font=("haveltica 14")).grid(row=7, column=0, sticky=W, pady=10, padx=10)
     Label(new_win, justify=LEFT, wraplength=500,
-          text="Disable debugging option - turns off all debugging features and runs the program as fast as possible.",
+          text="Disable debugging option - turns off all debugging features and runs the program as fast as possible. Cannot be changed during program execution.",
           font=("haveltica 12")).grid(row=8, column=0, sticky=W, pady=10, padx=10)
     Label(new_win, justify=LEFT, wraplength=500,
           text="Clear all breakpoints - option in the Debug menu to clear all current breakpoints.",
@@ -301,29 +301,29 @@ stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
 stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
 
 int_button = Button(stack_buttons, text="INT", command=v.stack_int)
-int_button.grid(column=1, row=0, padx=20, sticky=EW)  # for win - int_button.grid(column=1, row=0, padx=32)
+int_button.grid(column=1, row=0, padx=32)  #  int_button.grid(column=1, row=0, padx=20, sticky=EW)
 
 float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
-float_button.grid(column=2, row=0, padx=20, sticky=EW)  # for win - float_button.grid(column=2, row=0, padx=32)
+float_button.grid(column=2, row=0, padx=32) # float_button.grid(column=2, row=0, padx=20, sticky=EW)
 
 char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
-char_button.grid(column=3, row=0, padx=20, sticky=EW)  # for win - char_button.grid(column=3, row=0, padx=32)
+char_button.grid(column=3, row=0, padx=32) #char_button.grid(column=3, row=0, padx=20, sticky=EW) 
 
 hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
-hex_button.grid(column=4, row=0, padx=20, sticky=EW)  # for win - hex_button.grid(column=4, row=0, padx=32)
+hex_button.grid(column=4, row=0, padx=32)  #hex_button.grid(column=4, row=0, padx=20, sticky=EW)
 
 # bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
 # bin_button.grid(column=5, row=0, padx=5)
 
 tos_label = RegisterObject(reg_frame, bg="grey", text="tos",
-                           font=("haveltica 26"))
+                           font=("courier 16"))
 tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=W)
 pc_label = RegisterObject(reg_frame, bg="grey",
-                          text="pc", font=("haveltica 26"))
+                          text="pc", font=("courier 16"))
 pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=W)
 
 act_label = RegisterObject(reg_frame, bg="grey", text="act",
-                           font=("haveltica 26"))
+                           font=("courier 16"))
 act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
 
 

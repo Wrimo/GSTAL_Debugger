@@ -29,15 +29,15 @@ class StackObject(Frame):
     class StackItem:
         def __init__(self, canvas, index, value, coord, font_size):
             self.background = canvas.create_rectangle(coord[0] - 50, coord[1] - 15, coord[0] + 350,  coord[1] + 25, fill="#484848")
-            self.in_text = canvas.create_text(2, coord[1] + 25, anchor=SW, font=f"haveltica 20 bold")
+            self.in_text = canvas.create_text(2, coord[1] + 25, anchor=SW, font=f"courier 20 bold")
             canvas.itemconfig(self.in_text, text=f"{index}")
-            self.value_text = canvas.create_text(80, coord[1] + 25, anchor=SW, font=f"haveltica {font_size} bold")
+            self.value_text = canvas.create_text(80, coord[1] + 25, anchor=SW, font=f"courier {font_size} bold")
             self.line = canvas.create_line(60, coord[1] + 25, 60, coord[1] - 15)
             canvas.itemconfig(self.value_text, text=f"{value}")
             self.canvas = canvas
 
         def update_value(self, value, font_size):
-            self.canvas.itemconfig(self.value_text, font=f"haveltica {font_size} bold", text=f"{value}")
+            self.canvas.itemconfig(self.value_text, font=f"courier {font_size} bold", text=f"{value}")
 
         def highlight(self):
             self.canvas.itemconfig(self.in_text, fill="red")
@@ -60,10 +60,7 @@ class StackObject(Frame):
             self, bg="grey", height=kwargs["height"], width=kwargs["width"])
 
         self.vbar = Scrollbar(self, orient=VERTICAL)
-        self.vbar.config(command=self.canvas.yview)
         self.vbar.pack(side=RIGHT, fill=Y)
-
-        self.canvas.config(yscrollcommand=self.vbar.set)
         self.canvas.pack(anchor=tk.CENTER, expand=True)
 
         self.height = kwargs["height"]
@@ -73,16 +70,26 @@ class StackObject(Frame):
         self.state = StackObject.State.INT
         self.font_size = 20
         self.gap = 40
+        self.autoscroll = True
         self.highlighted = None  # used to keep track of the highlighted entry to unmark it on change
+
         def unbind(event): 
             self.canvas.unbind_all("<MouseWheel>")
         def bind(event):
             self.canvas.bind_all("<MouseWheel>", self._mousewheel)
 
+        def _scrolled(*args):
+            self.autoscroll = False
+            self.canvas.yview(*args)
+
+        self.vbar.config(command=_scrolled)
+        self.canvas.config(yscrollcommand= self.vbar.set)
+
         self.canvas.bind("<Enter>", bind)
         self.canvas.bind("<Leave>", unbind)
 
     def _mousewheel(self, event):
+        self.autoscroll = False
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def add_text(self, value):
@@ -90,7 +97,7 @@ class StackObject(Frame):
         self.y -= self.gap
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        if self.y < 0:
+        if self.y < 0 and self.autoscroll:
             self.canvas.yview_moveto('0.0')
         return item
 
@@ -193,7 +200,7 @@ class TerminalObject(Frame):
 
         self.height = self.y = kwargs["height"] - 20
         self.width = kwargs["width"]
-        self.x = 20
+        self.x = 25
 
         self.line = None
         self.entered = IntVar()
@@ -269,9 +276,15 @@ class RegisterObject(Label):
 class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-adding-line-number-to-text-widget
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
+
+        def _scrolled(*args):
+            self.autoscroll = False
+            self.text.yview(*args)
+
+        self.autoscroll = True
         self.text = EditorBox.CustomText(self, width=40, height=40)
         self.vsb = tk.Scrollbar(self, orient="vertical",
-                                command=self.text.yview)
+                                command=_scrolled)
         self.text.configure(yscrollcommand=self.vsb.set)
         self.text.tag_configure("step", background="red")
         self.linenumbers = EditorBox.TextLineNumbers(self, width=50)
@@ -285,6 +298,7 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
         self.text.bind("<Configure>", self._on_change)
 
         self.line = 0  # keeps tracks of the last highlighted line so it can cleared. the last hightlighted is not always the last line in sequential order due to jumps
+        
 
     def disable(self):
         self.text.configure(state="disable")
@@ -307,6 +321,8 @@ class EditorBox(Frame):  # https://stackoverflow.com/questions/16369470/tkinter-
     def highlight_line(self, line):
         self.clear_highlight()
         self.text.tag_add("step", float(line), f"{float(line)} lineend")
+        if self.autoscroll:
+            self.text.see(float(line + 15))
         self.line = line
 
     def clear_highlight(self):
