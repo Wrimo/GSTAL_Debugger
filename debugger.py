@@ -278,7 +278,7 @@ step_button_tip = ToolTip(step_button, "Execute next instruction")
 
 button_contain = ButtonContainer(play_button, stop_button, runend_button, run_nobreak, step_button)
 
-speed_label = Label(control_frame, text="Speed", font=("haveltica 9 bold"))
+speed_label = Label(control_frame, text="Speed", font=("courier 9 bold"))
 speed_label.grid(column=5, row=0, padx=1, pady=1)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
@@ -300,16 +300,17 @@ stack.grid(column=0, row=0, sticky=NSEW)
 stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
 stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
 
-int_button = Button(stack_buttons, text="INT", command=v.stack_int)
+button_font = "courier 9"
+int_button = Button(stack_buttons, text="INT", command=v.stack_int, font=button_font)
 int_button.grid(column=1, row=0, padx=32)  #  int_button.grid(column=1, row=0, padx=20, sticky=EW)
 
-float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float)
+float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float, font=button_font)
 float_button.grid(column=2, row=0, padx=32) # float_button.grid(column=2, row=0, padx=20, sticky=EW)
 
-char_button = Button(stack_buttons, text="CHAR", command=v.stack_char)
+char_button = Button(stack_buttons, text="CHAR", command=v.stack_char, font=button_font)
 char_button.grid(column=3, row=0, padx=32) #char_button.grid(column=3, row=0, padx=20, sticky=EW) 
 
-hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex)
+hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex, font=button_font)
 hex_button.grid(column=4, row=0, padx=32)  #hex_button.grid(column=4, row=0, padx=20, sticky=EW)
 
 # bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
