@@ -16,17 +16,19 @@ from ui_object import *
 
 class View:
     def update(self, stack, tos, act, pc):
-        if self.fast_mode.get() and not self.line_is_breakpoint(pc): 
+        if self.fast and not self.line_is_breakpoint(pc): 
             return
         self.tos_label.write(tos)
         self.act_label.write(act)
         self.pc_label.write(pc)
         self.editor.highlight_line(pc + 1)
-        self.editor.text.see(float(pc + 15))
         self.stack.update_stack(stack, act)
 
 
     def program_start(self): 
+        self.fast = self.fast_mode.get() # debugging cannot be enabled or disabled during program execution
+        self.stack.autoscroll = True
+        self.editor.autoscroll = True
         self.terminal.clear()
         self.editor.clear_highlight()
         self.editor.disable()
@@ -38,17 +40,17 @@ class View:
 
 
     def add_to_stack(self, item):
-        if self.fast_mode.get(): 
+        if self.fast: 
             return
         self.stack.push_item(item)
 
     def remove_from_stack(self):
-        if self.fast_mode.get(): 
+        if self.fast:
             return
         self.stack.pop_item()
 
     def wait(self, call_back):
-        if(self.fast_mode.get()):
+        if self.fast:
             self.root.after(0, call_back)
         else:
             self.root.after(self.delay, call_back)
