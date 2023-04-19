@@ -7,6 +7,7 @@
 # GSTAL programs.
 # -------------------------------------------------------------------
 
+import os
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -206,6 +207,8 @@ root.title("The BC Gstal Debugger")
 root.geometry("+1+1")
 root.resizable(0, 0)
 
+root.iconbitmap("Assets/bison-icon.ico")
+
 vm = GSTALVM()
 v = View()
 
@@ -278,12 +281,14 @@ step_button_tip = ToolTip(step_button, "Execute next instruction")
 
 button_contain = ButtonContainer(play_button, stop_button, runend_button, run_nobreak, step_button)
 
-speed_label = Label(control_frame, text="Speed", font=("courier 9 bold"))
+speed_label = Label(control_frame, text="Speed -", font=("courier 9 bold"))
 speed_label.grid(column=5, row=0, padx=1, pady=1)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
 speed_slider.grid(column=6, row=0, padx=1, pady=1)
 
+minus_label = Label(control_frame, text="+", font=("courier 9 bold"))
+minus_label.grid(column=7, row=0, padx=1, pady=1)
 
 # EDITOR
 editor = EditorBox(editor_frame)
