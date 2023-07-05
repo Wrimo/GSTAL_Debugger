@@ -60,8 +60,8 @@ class StackObject(Frame):
             self, bg="grey", height=kwargs["height"], width=kwargs["width"])
 
         self.vbar = Scrollbar(self, orient=VERTICAL)
-        self.vbar.pack(side=RIGHT, fill=Y)
-        self.canvas.pack(fill="both", expand=True)
+        self.vbar.pack(side=RIGHT, fill=BOTH)
+        self.canvas.pack(anchor=tk.CENTER, expand=True, fill=BOTH)
 
         self.height = kwargs["height"]
         self.x = 10

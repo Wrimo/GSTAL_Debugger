@@ -227,30 +227,31 @@ root.bind("<Return>", enter_pressed)
 
 # FRAME CREATION
 control_frame = Frame(root, width=400, height=10)
-control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW, pady=5)
+control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW, pady=10)
 
-editor_frame = Frame(root, width=400, height=400)
+editor_frame = Frame(root, width=400, height=200)
 editor_frame.grid(column=0, row=1, sticky=NSEW, rowspan=2)
 
 
-output_frame = Frame(root, width=400, height=400)
+output_frame = Frame(root, width=400, height=200)
 output_frame.grid(column=1, row=1, sticky=NSEW)
 
-stack_reg_frame = Frame(root, width=400, height=400)
+stack_reg_frame = Frame(root, width=400, height=200)
 stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
 
-stack_frame = Frame(stack_reg_frame, width=350, height=400)
+stack_frame = Frame(stack_reg_frame, width=350, height=200)
 stack_frame.grid(column=0, row=0, sticky=NSEW)
+
+reg_frame = Frame(stack_reg_frame, bg="grey", width=40, height=200)
+reg_frame.grid(column=1, row=0, sticky=NSEW)
+
 stack_reg_frame.columnconfigure(0, weight=1)
 stack_reg_frame.rowconfigure(0, weight=1)
-
-reg_frame = Frame(stack_reg_frame, bg="grey", width=40, height=400)
-reg_frame.grid(column=1, row=0, sticky=NSEW)
-stack_reg_frame.columnconfigure(1, weight=1)
+# stack_reg_frame.columnconfigure(1, weight=1)
 
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
-root.rowconfigure(0, weight=1)
+# root.rowconfigure(0, weight=10)
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
@@ -314,11 +315,12 @@ output_frame.rowconfigure(0, weight=1)
 stack = StackObject(stack_frame, width=390, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
+stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
+stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
+
 stack_frame.columnconfigure(0, weight=1)
 stack_frame.rowconfigure(0, weight=1)
 
-stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
-stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
 
 button_font = "courier 9"
 int_button = Button(stack_buttons, text="INT", command=v.stack_int, font=button_font)
@@ -332,6 +334,13 @@ char_button.grid(column=3, row=0, padx=32) #char_button.grid(column=3, row=0, pa
 
 hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex, font=button_font)
 hex_button.grid(column=4, row=0, padx=32)  #hex_button.grid(column=4, row=0, padx=20, sticky=EW)
+
+stack_buttons.rowconfigure(0, weight=1)
+stack_buttons.columnconfigure(0, weight=1)
+stack_buttons.columnconfigure(1, weight=1)
+stack_buttons.columnconfigure(2, weight=1)
+stack_buttons.columnconfigure(3, weight=1)
+stack_buttons.columnconfigure(4, weight=1)
 
 # bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
 # bin_button.grid(column=5, row=0, padx=5)
@@ -347,10 +356,10 @@ act_label = RegisterObject(reg_frame, bg="grey", text="act",
                            font=("courier 16"))
 act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
 
-reg_frame.columnconfigure(0, weight=1)
-reg_frame.rowconfigure(0, weight=1)
-reg_frame.rowconfigure(1, weight=1)
-reg_frame.rowconfigure(2, weight=1)
+# reg_frame.columnconfigure(0, weight=1)
+# reg_frame.rowconfigure(0, weight=1)
+# reg_frame.rowconfigure(1, weight=1)
+# reg_frame.rowconfigure(2, weight=1)
 
 
 # MENU CREATION
