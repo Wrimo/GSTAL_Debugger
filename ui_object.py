@@ -61,7 +61,7 @@ class StackObject(Frame):
 
         self.vbar = Scrollbar(self, orient=VERTICAL)
         self.vbar.pack(side=RIGHT, fill=Y)
-        self.canvas.pack(anchor=tk.CENTER, expand=True)
+        self.canvas.pack(fill="both", expand=True)
 
         self.height = kwargs["height"]
         self.x = 10
@@ -193,10 +193,10 @@ class TerminalObject(Frame):
 
         self.vbar = Scrollbar(self, orient=VERTICAL)
         self.vbar.config(command=self.canvas.yview)
-        self.vbar.pack(side=RIGHT, fill=Y)
+        self.vbar.pack(side=RIGHT, fill=BOTH)
 
         self.canvas.config(yscrollcommand=self.vbar.set)
-        self.canvas.pack(anchor=tk.CENTER, expand=True)
+        self.canvas.pack(anchor=tk.CENTER, expand=True, fill=BOTH)
 
         self.height = self.y = kwargs["height"] - 20
         self.width = kwargs["width"]

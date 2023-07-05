@@ -1,13 +1,12 @@
 # ---------------------------------------------------------
 # File--------debugger.py
-# Developer---Brennan Cottrell
+# Developer---B.            Cottrell
 # Date--------January, 14 2023
 #
 # A program to allow the writing and debugging of
 # GSTAL programs.
 # -------------------------------------------------------------------
 
-import os
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -205,7 +204,7 @@ def on_exit():
 root = Tk()
 root.title("The BC Gstal Debugger")
 root.geometry("+1+1")
-root.resizable(0, 0)
+# root.resizable(0, 0)
 
 root.iconbitmap("Assets/bison-icon.ico")
 
@@ -227,14 +226,12 @@ root.bind("<Return>", enter_pressed)
 
 
 # FRAME CREATION
-
 control_frame = Frame(root, width=400, height=10)
-control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW)
+control_frame.grid(column=0, row=0, columnspan=2, sticky=NSEW, pady=5)
 
 editor_frame = Frame(root, width=400, height=400)
 editor_frame.grid(column=0, row=1, sticky=NSEW, rowspan=2)
 
-root.grid_columnconfigure(0, weight=1)
 
 output_frame = Frame(root, width=400, height=400)
 output_frame.grid(column=1, row=1, sticky=NSEW)
@@ -244,11 +241,19 @@ stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
 
 stack_frame = Frame(stack_reg_frame, width=350, height=400)
 stack_frame.grid(column=0, row=0, sticky=NSEW)
+stack_reg_frame.columnconfigure(0, weight=1)
+stack_reg_frame.rowconfigure(0, weight=1)
 
 reg_frame = Frame(stack_reg_frame, bg="grey", width=40, height=400)
 reg_frame.grid(column=1, row=0, sticky=NSEW)
+stack_reg_frame.columnconfigure(1, weight=1)
 
-stack_reg_frame.grid_columnconfigure(1, weight=1)
+root.columnconfigure(0, weight=1)
+root.columnconfigure(1, weight=1)
+root.rowconfigure(0, weight=1)
+root.rowconfigure(1, weight=1)
+root.rowconfigure(2, weight=1)
+
 
 # CONTROL BAR
 play_img = tk.PhotoImage(file="Assets/play.png")
@@ -260,47 +265,57 @@ arrow_img = tk.PhotoImage(file="Assets/stair.png")
 
 
 play_button = tk.Button(control_frame, image=play_img, command=run_button, compound=CENTER)
-play_button.grid(column=0, row=0, padx=1, pady=1)
+play_button.grid(column=0, row=0, padx=1, pady=1, sticky=W)
 play_button_tip = ToolTip(play_button, "Start program")
 
 stop_button = tk.Button(control_frame, image=stop_img, command=stop, compound=CENTER)
-stop_button.grid(column=1, row=0, padx=1, pady=1)
+stop_button.grid(column=1, row=0, padx=1, pady=1, sticky=E)
 stop_button_tip = ToolTip(stop_button, "Stop program")
 
 runend_button = tk.Button(control_frame, image=continue_img, command=run_end, compound=CENTER)
-runend_button.grid(column=2, row=0, padx=1, pady=1)
+runend_button.grid(column=2, row=0, padx=1, pady=1, sticky=W)
 run_end_tip = ToolTip(runend_button, "Run to next breakpoint")
 
 run_nobreak = tk.Button(control_frame, image=fastforward_img, command=no_break_run_end, compound=CENTER)
-run_nobreak.grid(column=3, row=0, padx=1, pady=1)
+run_nobreak.grid(column=3, row=0, padx=1, pady=1, sticky=W)
 run_nobreak_tip = ToolTip(run_nobreak, "Run to end of program")
 
 step_button = tk.Button(control_frame, image=arrow_img, command=step_run, compound=CENTER)
-step_button.grid(column=4, row=0, padx=1)
+step_button.grid(column=4, row=0, padx=1, sticky=W)
 step_button_tip = ToolTip(step_button, "Execute next instruction")
 
 button_contain = ButtonContainer(play_button, stop_button, runend_button, run_nobreak, step_button)
 
 speed_label = Label(control_frame, text="Speed -", font=("courier 9 bold"))
-speed_label.grid(column=5, row=0, padx=1, pady=1)
+speed_label.grid(column=5, row=0, padx=1, pady=1, sticky=W)
 
 speed_slider = ttk.Scale(control_frame, from_=1, to=0, orient="horizontal", command=slider_change)
-speed_slider.grid(column=6, row=0, padx=1, pady=1)
+speed_slider.grid(column=6, row=0, padx=1, pady=1, sticky=W)
 
 minus_label = Label(control_frame, text="+", font=("courier 9 bold"))
-minus_label.grid(column=7, row=0, padx=1, pady=1)
+minus_label.grid(column=7, row=0, padx=1, pady=1, sticky=W)
+
+# control_frame.columnconfigure(0, weight=1)
+control_frame.rowconfigure(0, weight=4)
 
 # EDITOR
 editor = EditorBox(editor_frame)
 editor.grid(column=0, row=0, sticky=NSEW)
+editor_frame.columnconfigure(0, weight=1)
+editor_frame.rowconfigure(0, weight=1)
 
 # OUTPUT
 output = TerminalObject(output_frame, width=550, height=350)
 output.grid(column=0, row=0, sticky=NSEW)
+output_frame.columnconfigure(0, weight=1)
+output_frame.rowconfigure(0, weight=1)
 
 # STACK AND REGISTER VIEW
 stack = StackObject(stack_frame, width=390, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
+
+stack_frame.columnconfigure(0, weight=1)
+stack_frame.rowconfigure(0, weight=1)
 
 stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
 stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
@@ -331,6 +346,11 @@ pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=W)
 act_label = RegisterObject(reg_frame, bg="grey", text="act",
                            font=("courier 16"))
 act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
+
+reg_frame.columnconfigure(0, weight=1)
+reg_frame.rowconfigure(0, weight=1)
+reg_frame.rowconfigure(1, weight=1)
+reg_frame.rowconfigure(2, weight=1)
 
 
 # MENU CREATION
