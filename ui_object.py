@@ -196,7 +196,7 @@ class TerminalObject(Frame):
         self.vbar.pack(side=RIGHT, fill=BOTH)
 
         self.canvas.config(yscrollcommand=self.vbar.set)
-        self.canvas.pack(anchor=tk.CENTER, expand=True, fill=BOTH)
+        self.canvas.pack(anchor=tk.W, expand=True, fill=BOTH)
 
         self.height = self.y = kwargs["height"] - 20
         self.width = kwargs["width"]

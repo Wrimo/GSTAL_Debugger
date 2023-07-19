@@ -99,6 +99,7 @@ def slider_change(event=None):
 
 
 def run_button(event=None):
+    print(root.winfo_width(), root.winfo_height())
     if not vm.finished_execution():
         pause()
     else:
@@ -203,8 +204,8 @@ def on_exit():
 
 root = Tk()
 root.title("The BC Gstal Debugger")
-root.geometry("+1+1")
-# root.resizable(0, 0)
+root.minsize(825, 420)
+root.geometry("850x700")
 
 root.iconbitmap("Assets/bison-icon.ico")
 
@@ -239,19 +240,18 @@ output_frame.grid(column=1, row=1, sticky=NSEW)
 stack_reg_frame = Frame(root, width=400, height=200)
 stack_reg_frame.grid(column=1, row=2, sticky=NSEW)
 
-stack_frame = Frame(stack_reg_frame, width=350, height=200)
-stack_frame.grid(column=0, row=0, sticky=NSEW)
+stack_frame = Frame(stack_reg_frame, width=300, height=200)
+stack_frame.grid(column=0, row=0, sticky=NSEW, columnspan=1)
 
-reg_frame = Frame(stack_reg_frame, bg="grey", width=40, height=200)
-reg_frame.grid(column=1, row=0, sticky=NSEW)
+reg_frame = Frame(stack_reg_frame, bg="grey", width=100, height=200)
+reg_frame.grid(column=1, row=0, sticky=NSEW, columnspan=2)
 
 stack_reg_frame.columnconfigure(0, weight=1)
 stack_reg_frame.rowconfigure(0, weight=1)
-# stack_reg_frame.columnconfigure(1, weight=1)
 
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
-# root.rowconfigure(0, weight=10)
+
 root.rowconfigure(1, weight=1)
 root.rowconfigure(2, weight=1)
 
@@ -296,7 +296,6 @@ speed_slider.grid(column=6, row=0, padx=1, pady=1, sticky=W)
 minus_label = Label(control_frame, text="+", font=("courier 9 bold"))
 minus_label.grid(column=7, row=0, padx=1, pady=1, sticky=W)
 
-# control_frame.columnconfigure(0, weight=1)
 control_frame.rowconfigure(0, weight=4)
 
 # EDITOR
@@ -312,54 +311,45 @@ output_frame.columnconfigure(0, weight=1)
 output_frame.rowconfigure(0, weight=1)
 
 # STACK AND REGISTER VIEW
-stack = StackObject(stack_frame, width=390, height=300)
+stack = StackObject(stack_frame, width=300, height=300)
 stack.grid(column=0, row=0, sticky=NSEW)
 
-stack_buttons = Frame(stack_frame, bg="grey", width=200, height=100)
-stack_buttons.grid(column=0, row=1, sticky=EW, padx=1)
+stack_buttons = Frame(stack_frame, width=10, height=100)
+stack_buttons.grid(column=0, row=1)
 
 stack_frame.columnconfigure(0, weight=1)
 stack_frame.rowconfigure(0, weight=1)
 
 
 button_font = "courier 9"
-int_button = Button(stack_buttons, text="INT", command=v.stack_int, font=button_font)
-int_button.grid(column=1, row=0, padx=32)  #  int_button.grid(column=1, row=0, padx=20, sticky=EW)
+int_button = Button(stack_buttons, text="INT", command=v.stack_int, font=button_font, width=5)
+int_button.grid(column=0, row=0, padx=5) 
 
-float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float, font=button_font)
-float_button.grid(column=2, row=0, padx=32) # float_button.grid(column=2, row=0, padx=20, sticky=EW)
+float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float, font=button_font, width=5)
+float_button.grid(column=1, row=0, padx=5
 
-char_button = Button(stack_buttons, text="CHAR", command=v.stack_char, font=button_font)
-char_button.grid(column=3, row=0, padx=32) #char_button.grid(column=3, row=0, padx=20, sticky=EW) 
+char_button = Button(stack_buttons, text="CHAR", command=v.stack_char, font=button_font, width=5)
+char_button.grid(column=2, row=0, padx=5)
 
-hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex, font=button_font)
-hex_button.grid(column=4, row=0, padx=32)  #hex_button.grid(column=4, row=0, padx=20, sticky=EW)
+hex_button = Button(stack_buttons, text="HEX", command=v.stack_hex, font=button_font, width=5)
+hex_button.grid(column=3, row=0, padx=5) 
 
-stack_buttons.rowconfigure(0, weight=1)
-stack_buttons.columnconfigure(0, weight=1)
-stack_buttons.columnconfigure(1, weight=1)
-stack_buttons.columnconfigure(2, weight=1)
-stack_buttons.columnconfigure(3, weight=1)
-stack_buttons.columnconfigure(4, weight=1)
+label_font = "courier 16"
+tos_label = RegisterObject(reg_frame, width=7, bg="grey", text="tos",
+                           font=label_font, anchor=W)
+tos_label.grid(column=0, row=0, pady=15, padx=10, sticky=W)
+pc_label = RegisterObject(reg_frame, bg="grey",  width=7,
+                          text="pc", font=label_font, anchor=W)
+pc_label.grid(column=0, row=1, pady=15, padx=10, sticky=W)
 
-# bin_button = Button(stack_buttons, text="BIN", command=v.stack_bin)
-# bin_button.grid(column=5, row=0, padx=5)
-
-tos_label = RegisterObject(reg_frame, bg="grey", text="tos",
-                           font=("courier 16"))
-tos_label.grid(column=0, row=0, pady=30, padx=15, sticky=W)
-pc_label = RegisterObject(reg_frame, bg="grey",
-                          text="pc", font=("courier 16"))
-pc_label.grid(column=0, row=1, pady=30, padx=15, sticky=W)
-
-act_label = RegisterObject(reg_frame, bg="grey", text="act",
-                           font=("courier 16"))
-act_label.grid(column=0, row=2, pady=30, padx=15, sticky=W)
+act_label = RegisterObject(reg_frame, bg="grey", text="act",  width=7,
+                           font=label_font, anchor=W)
+act_label.grid(column=0, row=2, pady=15, padx=10, sticky=W)
 
 # reg_frame.columnconfigure(0, weight=1)
-# reg_frame.rowconfigure(0, weight=1)
-# reg_frame.rowconfigure(1, weight=1)
-# reg_frame.rowconfigure(2, weight=1)
+reg_frame.rowconfigure(0, weight=1)
+reg_frame.rowconfigure(1, weight=1)
+reg_frame.rowconfigure(2, weight=1)
 
 
 # MENU CREATION
