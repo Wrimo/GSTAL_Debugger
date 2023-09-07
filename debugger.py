@@ -326,7 +326,7 @@ int_button = Button(stack_buttons, text="INT", command=v.stack_int, font=button_
 int_button.grid(column=0, row=0, padx=5) 
 
 float_button = Button(stack_buttons, text="FLOAT", command=v.stack_float, font=button_font, width=5)
-float_button.grid(column=1, row=0, padx=5
+float_button.grid(column=1, row=0, padx=5)
 
 char_button = Button(stack_buttons, text="CHAR", command=v.stack_char, font=button_font, width=5)
 char_button.grid(column=2, row=0, padx=5)
