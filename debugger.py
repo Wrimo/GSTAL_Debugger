@@ -12,6 +12,7 @@ from tkinter import ttk
 import tkinter as tk
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from GSTAL_Virtual_Machine import GSTALVM
+import platform
 
 from uimanager import *
 
@@ -207,7 +208,8 @@ root.title("The BC Gstal Debugger")
 root.minsize(825, 420)
 root.geometry("850x700")
 
-root.iconbitmap("Assets/bison-icon.ico")
+if platform.system() == "Windows":
+    root.iconbitmap("Assets/bison-icon.ico")
 
 vm = GSTALVM()
 v = View()
