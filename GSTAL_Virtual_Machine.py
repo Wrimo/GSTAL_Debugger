@@ -266,7 +266,7 @@ class GSTALVM:
         if(y==0):
             self.runError("divide by zero")
         else:    
-            self.push(DataCell(x // y))
+            self.push(DataCell(x / y))
             self._pc = self._pc + 1    
         return
      
